@@ -7,7 +7,7 @@ void LGame::loadGame()
     //Init program
     init();
 
-    //LoadMedia
+    //Load Image
     loadMedia(gAnimal[SHARK], "pictures/simple/shark.png");
 
     loadMedia(gAnimal[JELLYFISH], "pictures/simple/jellyfish.png");
@@ -23,6 +23,12 @@ void LGame::loadGame()
     loadMedia(curBackGround, "pictures/simple/4.png");
 
     curBackGround.setBackGround();
+
+	//Set image part to render
+	setImagePart();
+
+    //Set lantern shark to be your fish
+    yourFish = gAnimal[LANTERNSHARK];
 
 }
 
@@ -53,6 +59,11 @@ void LGame::playGame()
         SDL_RenderClear( gRenderer );
 
         curBackGround.render(gRenderer, 0, 0);
+
+		yourFish.render(gRenderer, (SCREEN_WIDTH - yourFish.getWidth()) / 2, (SCREEN_HEIGHT - yourFish.getHeight()) / 2, &yourFish.gSpriteClips[yourFish.curPart / CNT_FRAME]);
+		yourFish.curPart++;
+		if(yourFish.curPart == yourFish.numPart * CNT_FRAME)
+			yourFish.curPart = 0;
 
         //Update screen
         SDL_RenderPresent( gRenderer);
@@ -147,6 +158,21 @@ bool LGame::loadMedia(LTexture &curTexture, const std::string &path)
 		success = false;
 	}
 	return success;
+}
+
+void LGame::setImagePart()
+{
+	gAnimal[SHARK].setImagePart(4);
+
+	gAnimal[JELLYFISH].setImagePart(4);
+
+	gAnimal[TURTLE].setImagePart(6);
+
+	gAnimal[LANTERNSHARK].setImagePart(4);
+
+	gAnimal[EEL].setImagePart(6);
+
+	gAnimal[OCTOPUS].setImagePart(6);
 }
 
 SDL_Point LGame::lastestMousePosition(SDL_Event* e)

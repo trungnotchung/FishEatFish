@@ -36,6 +36,8 @@ class LGame
 
         bool loadMedia(LTexture &curTexture, const std::string &path);
 
+        void setImagePart();
+
         bool loadString(LTexture &curTexture, const std::string &path, const std::string &str);
 
         void close();
@@ -46,6 +48,7 @@ class LGame
 
         LTexture gAnimal[TOTAL_ANIMAL];
         LTexture curBackGround;
+        LTexture yourFish;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;

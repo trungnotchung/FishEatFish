@@ -9,6 +9,8 @@ LTexture::LTexture()
 	mWidth = 0;
 	mHeight = 0;
 	isBackGround = false;
+	numPart = 0;
+	curPart = 0;
 }
 
 LTexture::~LTexture()
@@ -17,7 +19,7 @@ LTexture::~LTexture()
 	free();
 }
 
-bool LTexture::loadFromFile( std::string path, SDL_Renderer *gRenderer )
+bool LTexture::loadFromFile( std::string path, SDL_Renderer *gRenderer)
 {
 	//Get rid of preexisting texture
 	free();
@@ -34,7 +36,7 @@ bool LTexture::loadFromFile( std::string path, SDL_Renderer *gRenderer )
 	else
 	{
 		//Color key image
-		SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xFF, 0xFF ) );
+		SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0, 0) );
 
 		//Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
@@ -131,6 +133,7 @@ void LTexture::free()
 		mWidth = 0;
 		mHeight = 0;
 		isBackGround = false;
+		numPart = curPart = 0;
 	}
 }
 
@@ -170,6 +173,30 @@ void LTexture::render(SDL_Renderer *gRenderer, int x, int y, SDL_Rect* clip, dou
 	//Render to screen
 	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
+
+void LTexture::setImagePart(int _numPart)
+{
+	numPart = _numPart;
+	for(int i=0; i<numPart; ++i)
+	{
+		gSpriteClips[i].x = i * IMAGE_SIZE;
+		gSpriteClips[i].y = 0;
+		gSpriteClips[i].w = IMAGE_SIZE;
+		gSpriteClips[i].h = IMAGE_SIZE;
+	}
+}
+
+void LTexture::setWidth(int w)
+{
+	mWidth = w;
+}
+
+void LTexture::setHeight(int h)
+{
+	mHeight = h;
+}
+
+
 
 void LTexture::setBackGround()
 {
