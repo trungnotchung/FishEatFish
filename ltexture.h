@@ -4,10 +4,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
-#include <stdio.h>
-#include <string>
-#include <iostream>
 #include "variable.h"
+#include "lrandom.h"
 
 //Texture wrapper class
 class LTexture
@@ -88,6 +86,9 @@ class LTexture
         //Speed of this fish
         int curSpeed;
 
+        //Direction of this fish
+        bool left, right;
+
         //Cur coordinate of top left position
         SDL_Point curPosition;
 
@@ -109,4 +110,5 @@ class LTexture
         int mWidth;
         int mHeight;
 };
+
 #endif

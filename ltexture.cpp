@@ -138,7 +138,10 @@ void LTexture::render(SDL_Renderer *gRenderer, int x, int y, SDL_Rect* clip, dou
 	if(isFish)
 		renderQuad.w = curSize, renderQuad.h = curSize;
 	//Render to screen
-	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
+	if(left)
+		SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, SDL_FLIP_HORIZONTAL);
+	else
+		SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
 
 void LTexture::setImagePart(int _numPart)
@@ -208,8 +211,12 @@ void LTexture::reset()
 	if(isFish)
 	{
 		isOnScreen = false;
-		curPosition.x = 0;
-	}
+		if(right) 
+			curPosition.x = 0;
+		else 
+			curPosition.x = SCREEN_WIDTH;
+		curPosition.y = randNum(0, SCREEN_HEIGHT);
+	}	
 
 }
 
@@ -227,6 +234,8 @@ LTexture::LTexture()
 	isFish = false;
 	fishType = 0;
 	isOnScreen = false;
+	left = false;
+	right = false;
 }
 
 LTexture::~LTexture()
@@ -252,5 +261,7 @@ void LTexture::free()
 		curSpeed = 0;
 		fishType = 0;
 		isOnScreen = false;
+		left = false;
+		right = false;
 	}
 }

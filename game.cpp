@@ -64,7 +64,10 @@ void LGame::playGame()
 		{
 			if(!fishOnScreen[i].isOnScreen)
 				continue;
-			fishOnScreen[i].curPosition.x += fishOnScreen[i].curSpeed;
+			if(fishOnScreen[i].right)
+				fishOnScreen[i].curPosition.x += fishOnScreen[i].curSpeed;
+			else 
+				fishOnScreen[i].curPosition.x -= fishOnScreen[i].curSpeed;
 			// std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
 			if(fishOnScreen[i].curPosition.x < 0 || fishOnScreen[i].curPosition.x > SCREEN_WIDTH)
 			{
@@ -224,13 +227,15 @@ void LGame::addNewFish()
 	}
 
 	random_shuffle(candidates.begin(), candidates.end());
+
 	int pos = randNum(0, (int)candidates.size() - 1);
+	int dir = randNum(0, 1);
 
 	int fishType = candidates[pos];
 
 	for(int j=0; j<totalFish; ++j)
 	{
-		if(fishOnScreen[j].fishType == fishType && fishOnScreen[j].isOnScreen == false)
+		if(fishOnScreen[j].fishType == fishType && fishOnScreen[j].isOnScreen == false && fishOnScreen[j].right == dir)
 		{
 			fishOnScreen[j].reset();
 			fishOnScreen[j].isOnScreen = true;
@@ -301,6 +306,15 @@ void LGame::setUpFish()
 			loadFish(fishOnScreen[totalFish], i);
 			fishOnScreen[totalFish].curPosition.x = 0;
 			fishOnScreen[totalFish].curPosition.y = randNum(0, SCREEN_HEIGHT);
+			fishOnScreen[totalFish].right = true;
+			++totalFish;
+		}
+		for(int j=1; j<=10; ++j)
+		{
+			loadFish(fishOnScreen[totalFish], i);
+			fishOnScreen[totalFish].curPosition.x = SCREEN_WIDTH;
+			fishOnScreen[totalFish].curPosition.y = randNum(0, SCREEN_HEIGHT);
+			fishOnScreen[totalFish].left = true;
 			++totalFish;
 		}
 	}

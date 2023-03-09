@@ -3,7 +3,6 @@
 #include <string.h>
 #include <SDL.h>
 #include <SDL_image.h>
-#include <bits/stdc++.h>
 #include "ltexture.h"
 #include "lbutton.h"
 #include "lrandom.h"
@@ -72,7 +71,7 @@ class LGame
         LTexture gAnimal[TOTAL_ANIMAL];
         LTexture curBackGround;
         LTexture yourFish;
-        LTexture fishOnScreen[TOTAL_ANIMAL * 11];
+        LTexture fishOnScreen[TOTAL_ANIMAL * 30];
         int totalFish;
     private:
         SDL_Window *gWindow;
