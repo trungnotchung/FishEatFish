@@ -1,6 +1,4 @@
 #include "game.h"
-#include "lrandom.h"
-#include "ltexture.h"
 
 void LGame::loadGame()
 {
@@ -76,6 +74,7 @@ void LGame::playGame()
 
 		render(yourFish);
 
+		//Add new fish
 		++timer;
 		if(timer == RANDOM_TIME)
 			addNewFish(), timer = 0;
@@ -83,15 +82,18 @@ void LGame::playGame()
 		for(int i=(int)fishOnScreen.size()-1; i >= 0; --i)
 		{
 			fishOnScreen[i].curPosition.x += fishOnScreen[i].curSpeed;
-			std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
+			// std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
 			if(fishOnScreen[i].curPosition.x < 0 || fishOnScreen[i].curPosition.x > SCREEN_WIDTH)
 			{
 				std::swap(fishOnScreen[i], fishOnScreen.back());
 				fishOnScreen.pop_back();
 				continue;
 			}
-			render(fishOnScreen[i]);
 		}
+		for(int i=0; i<(int)fishOnScreen.size(); ++i)
+			render(fishOnScreen[i]);
+		
+		std::cout << (int)fishOnScreen.size() << '\n';
 
         //Update screen
         SDL_RenderPresent( gRenderer);

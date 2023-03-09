@@ -6,6 +6,7 @@
 #include <bits/stdc++.h>
 #include "ltexture.h"
 #include "lbutton.h"
+#include "lrandom.h"
 #include "variable.h"
 
 enum Animal
