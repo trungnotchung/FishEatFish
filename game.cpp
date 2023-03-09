@@ -20,17 +20,22 @@ void LGame::loadGame()
 
     loadMedia(gAnimal[OCTOPUS], "pictures/simple/octopus.png");
 
-    loadMedia(curBackGround, "pictures/simple/4.png");
+    loadMedia(curBackGround, "pictures/simple/1.png");
 
     curBackGround.setBackGround();
 
 	//Set image part to render
 	setImagePart();
 
+	//Init size and fish type for each fish
+	initFish();
+
     //Set lantern shark to be your fish
     yourFish = gAnimal[LANTERNSHARK];
 
-}
+	//Set your fish's position
+	yourFish.curPosition.x = 0, yourFish.curPosition.y = 0;
+}	
 
 
 void LGame::playGame()
@@ -39,6 +44,8 @@ void LGame::playGame()
 
     //Event handler
     SDL_Event e;
+
+	int timer = 0;
 
     //While application is running
     while( !quit )
@@ -51,7 +58,14 @@ void LGame::playGame()
             {
                 quit = true;
             }
-            
+            SDL_Point p = lastestMousePosition(&e);
+
+			//Update your fish's position
+			if(p.x != -1 || p.y != -1)
+			{	
+				yourFish.curPosition.x = p.x - IMAGE_SIZE/2;
+				yourFish.curPosition.y = p.y - IMAGE_SIZE/2;
+			}
         }
         //Clear screen
         
@@ -60,15 +74,28 @@ void LGame::playGame()
 
         curBackGround.render(gRenderer, 0, 0);
 
-		yourFish.render(gRenderer, (SCREEN_WIDTH - yourFish.getWidth()) / 2, (SCREEN_HEIGHT - yourFish.getHeight()) / 2, &yourFish.gSpriteClips[yourFish.curPart / CNT_FRAME]);
-		yourFish.curPart++;
-		if(yourFish.curPart == yourFish.numPart * CNT_FRAME)
-			yourFish.curPart = 0;
+		render(yourFish);
+
+		++timer;
+		if(timer == RANDOM_TIME)
+			addNewFish(), timer = 0;
+
+		for(int i=(int)fishOnScreen.size()-1; i >= 0; --i)
+		{
+			fishOnScreen[i].curPosition.x += fishOnScreen[i].curSpeed;
+			std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
+			if(fishOnScreen[i].curPosition.x < 0 || fishOnScreen[i].curPosition.x > SCREEN_WIDTH)
+			{
+				std::swap(fishOnScreen[i], fishOnScreen.back());
+				fishOnScreen.pop_back();
+				continue;
+			}
+			render(fishOnScreen[i]);
+		}
 
         //Update screen
         SDL_RenderPresent( gRenderer);
 
-        // SDL_RenderPresent( gRenderer );
     }
 }
 
@@ -160,6 +187,14 @@ bool LGame::loadMedia(LTexture &curTexture, const std::string &path)
 	return success;
 }
 
+void LGame::render(LTexture &curTexture)
+{
+	curTexture.render(gRenderer, curTexture.curPosition.x, curTexture.curPosition.y, &curTexture.gSpriteClips[curTexture.curPart / CNT_FRAME]);
+	curTexture.curPart++;
+	if(curTexture.curPart == curTexture.numPart * CNT_FRAME)
+		curTexture.curPart = 0;
+}
+
 void LGame::setImagePart()
 {
 	gAnimal[SHARK].setImagePart(4);
@@ -190,10 +225,76 @@ SDL_Point LGame::lastestMousePosition(SDL_Event* e)
     return res;
 }
 
+void LGame::initFish()
+{
+	gAnimal[EEL].setFish();
+	gAnimal[EEL].setSize(48);
+	gAnimal[EEL].setPoint(1);
+	gAnimal[EEL].curSpeed = 2;
+
+	gAnimal[JELLYFISH].setFish();
+	gAnimal[JELLYFISH].setSize(72);
+	gAnimal[JELLYFISH].setPoint(20);
+	gAnimal[JELLYFISH].curSpeed = 2;
+
+	gAnimal[TURTLE].setFish();
+	gAnimal[TURTLE].setSize(96);
+	gAnimal[TURTLE].setPoint(200);
+	gAnimal[TURTLE].curSpeed = 1;
+
+	gAnimal[SHARK].setFish();
+	gAnimal[SHARK].setSize(120);
+	gAnimal[SHARK].setPoint(2000);
+	gAnimal[SHARK].curSpeed = 3;
+
+	gAnimal[OCTOPUS].setFish();
+	gAnimal[OCTOPUS].setSize(144);
+	gAnimal[OCTOPUS].setPoint(20000);
+	gAnimal[OCTOPUS].curSpeed = 3;
+
+
+	gAnimal[LANTERNSHARK].setFish();
+	gAnimal[LANTERNSHARK].setSize(48);
+	gAnimal[LANTERNSHARK].setPoint(1);
+	gAnimal[LANTERNSHARK].curSpeed = 1;
+
+	for(int i=0; i<TOTAL_ANIMAL; ++i)
+		gAnimal[i].curSpeed = 1;
+}
+
+void LGame::addNewFish()
+{
+	std::vector<std::pair<int, int> > diff;
+	for(int i = 0; i < TOTAL_ANIMAL; ++i)
+	{
+		if(i == LANTERNSHARK) continue;
+		diff.push_back(std::make_pair(yourFish.getCurPoint() - gAnimal[i].getCurPoint(), i));
+	}
+	sort(diff.begin(), diff.end());
+
+	std::vector<int> candidates;
+	for(int i = 0; i < diff.size(); ++i)
+	{
+		for(int j = 0; j < TOTAL_ANIMAL - 1 - i; ++j)
+			candidates.push_back(diff[i].second);
+	}
+
+	random_shuffle(candidates.begin(), candidates.end());
+	int pos = randNum(0, (int)candidates.size() - 1);
+
+	int fish = candidates[pos];
+
+	int y = randNum(0, SCREEN_HEIGHT);
+	fishOnScreen.push_back(gAnimal[fish]);
+	fishOnScreen.back().curPosition.x = 0;
+	fishOnScreen.back().curPosition.y = y;
+}
 
 void LGame::reset()
 {
-    
+    yourFish = gAnimal[LANTERNSHARK];
+	fishOnScreen.clear();
+
 }
 
 LGame::LGame()
@@ -204,14 +305,27 @@ LGame::LGame()
 
 LGame::~LGame()
 {
+	free();
+}
+
+void LGame::free()
+{
 	//Free loaded images
 	// gButtonSpriteSheetTexture.free();
 	//Destroy window	
-    
+	
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
 	gRenderer = NULL;
+
+	for(int i=0; i<TOTAL_ANIMAL; ++i)
+		gAnimal[i].free();
+	curBackGround.free();
+	yourFish.free();
+	for(int i=0; i<(int)fishOnScreen.size(); ++i)
+		fishOnScreen[i].free();
+	fishOnScreen.clear();
 
 	//Quit SDL subsystems
 	IMG_Quit();

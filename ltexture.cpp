@@ -170,6 +170,9 @@ void LTexture::render(SDL_Renderer *gRenderer, int x, int y, SDL_Rect* clip, dou
 	if(isBackGround)
 		renderQuad.w = SCREEN_WIDTH, renderQuad.h = SCREEN_HEIGHT;
 
+	if(isFish)
+		renderQuad.w = curSize, renderQuad.h = curSize;
+
 	//Render to screen
 	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
@@ -196,12 +199,37 @@ void LTexture::setHeight(int h)
 	mHeight = h;
 }
 
-
-
 void LTexture::setBackGround()
 {
 	isBackGround = true;
 }
+
+void LTexture::setFish()
+{
+	isFish = true;
+}
+
+void LTexture::setPoint(int _point)
+{
+	curPoint = _point;
+}
+
+void LTexture::setSize(int _size)
+{
+	curSize = _size;
+}
+
+int LTexture::getCurSize()
+{
+	return curSize;
+}
+
+int LTexture::getCurPoint()
+{
+	return curPoint;
+}
+
+
 
 int LTexture::getWidth()
 {

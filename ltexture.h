@@ -56,8 +56,29 @@ class LTexture
         //Set this texture is a background
         void setBackGround();
 
+        //Set this texture is a fish
+        void setFish();
+
+        //Set point for this fish
+        void setPoint(int _point);
+
+        //Get this fish's point
+        int getCurPoint();
+
+        //Set size for this fish
+        void setSize(int _size);
+
+        //Get this fish's size
+        int getCurSize();
+
         //Number of part
         int numPart, curPart;
+
+        //Speed of this fish
+        int curSpeed;
+
+        //Cur coordinate of top left position
+        SDL_Point curPosition;
 
         //Rectangle of each part
         SDL_Rect gSpriteClips[10];
@@ -65,9 +86,16 @@ class LTexture
         //The actual hardware texture
         SDL_Texture* mTexture;
         TTF_Font *gFont;
+        //Is this texture a background
         bool isBackGround;
+        //Is this texture a fish
+        bool isFish;
+        //Size of this fish
+        int curSize;
+        //Point of this fish
+        int curPoint;
         //Image dimensions
         int mWidth;
         int mHeight;
-};  
+};
 #endif
