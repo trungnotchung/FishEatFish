@@ -1,21 +1,4 @@
 #include "ltexture.h"
-LTexture::LTexture()
-{
-	//Initialize
-	gFont = NULL;
-	mTexture = NULL;
-	mWidth = 0;
-	mHeight = 0;
-	isBackGround = false;
-	numPart = 0;
-	curPart = 0;
-}
-
-LTexture::~LTexture()
-{
-	//Deallocate
-	free();
-}
 
 bool LTexture::loadFromFile( std::string path, SDL_Renderer *gRenderer)
 {
@@ -119,22 +102,6 @@ bool LTexture::loadString(SDL_Renderer *gRender, std::string path, std::string s
 }
 #endif
 
-void LTexture::free()
-{
-	//Free texture if it exists
-	if( mTexture != NULL )
-	{
-		TTF_CloseFont( gFont );
-		SDL_DestroyTexture( mTexture );
-		gFont = NULL;
-		mTexture = NULL;
-		mWidth = 0;
-		mHeight = 0;
-		isBackGround = false;
-		numPart = curPart = 0;
-	}
-}
-
 void LTexture::setColor( Uint8 red, Uint8 green, Uint8 blue )
 {
 	//Modulate texture rgb
@@ -170,7 +137,6 @@ void LTexture::render(SDL_Renderer *gRenderer, int x, int y, SDL_Rect* clip, dou
 
 	if(isFish)
 		renderQuad.w = curSize, renderQuad.h = curSize;
-
 	//Render to screen
 	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
@@ -227,8 +193,6 @@ int LTexture::getCurPoint()
 	return curPoint;
 }
 
-
-
 int LTexture::getWidth()
 {
 	return mWidth;
@@ -237,4 +201,56 @@ int LTexture::getWidth()
 int LTexture::getHeight()
 {
 	return mHeight;
+}
+
+void LTexture::reset()
+{
+	if(isFish)
+	{
+		isOnScreen = false;
+		curPosition.x = 0;
+	}
+
+}
+
+LTexture::LTexture()
+{
+	//Initialize
+	gFont = NULL;
+	mTexture = NULL;
+	mWidth = 0;
+	mHeight = 0;
+	isBackGround = false;
+	numPart = 0;
+	curPart = 0;
+	curSpeed = 0;
+	isFish = false;
+	fishType = 0;
+	isOnScreen = false;
+}
+
+LTexture::~LTexture()
+{
+	//Deallocate
+	free();
+}
+
+void LTexture::free()
+{
+	//Free texture if it exists
+	if( mTexture != NULL )
+	{
+		TTF_CloseFont( gFont );
+		SDL_DestroyTexture( mTexture );
+		gFont = NULL;
+		mTexture = NULL;
+		mWidth = 0;
+		mHeight = 0;
+		isBackGround = false;
+		isFish = false;
+		numPart = curPart = 0;
+		curSpeed = 0;
+		fishType = 0;
+		isOnScreen = false;
+	}
 }

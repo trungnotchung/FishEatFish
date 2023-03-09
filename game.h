@@ -20,6 +20,15 @@ enum Animal
     TOTAL_ANIMAL = 6
 };
 
+//size
+const int sz[] = {120, 72, 96, 48, 48, 144};
+//point
+const int pt[] = {2000, 20, 200, 1, 1, 20000};
+//speed
+const int sp[] = {3, 2, 1, 1, 2, 3};
+//numPart
+const int np[] = {4, 4, 6, 4, 6, 6};
+
 class LGame
 {
     public:
@@ -37,20 +46,20 @@ class LGame
         //Load image texture
         bool loadMedia(LTexture &curTexture, const std::string &path);
 
-        //Set count part for each image
-        void setImagePart();
-
         //Load string texture
         bool loadString(LTexture &curTexture, const std::string &path, const std::string &str);
-
-        //Init size and fish type for each fish
-        void initFish();
 
         //Add a new fish to your screen
         void addNewFish();
 
+        //Load a new texture for a fish
+        void loadFish(LTexture &curTexture, int fishType);
+
         //Render a fish
         void render(LTexture &curTexture);
+
+        //Init fish
+        void setUpFish();
 
         void close();
 
@@ -63,7 +72,8 @@ class LGame
         LTexture gAnimal[TOTAL_ANIMAL];
         LTexture curBackGround;
         LTexture yourFish;
-        std::vector<LTexture> fishOnScreen;
+        LTexture fishOnScreen[TOTAL_ANIMAL * 11];
+        int totalFish;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;

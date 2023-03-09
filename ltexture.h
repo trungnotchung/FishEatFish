@@ -6,6 +6,7 @@
 #include <SDL_ttf.h>
 #include <stdio.h>
 #include <string>
+#include <iostream>
 #include "variable.h"
 
 //Texture wrapper class
@@ -69,11 +70,20 @@ class LTexture
         //Set size for this fish
         void setSize(int _size);
 
+        //Reset this fish
+        void reset();
+
         //Get this fish's size
         int getCurSize();
 
         //Number of part
         int numPart, curPart;
+
+        //Type of this fish
+        int fishType;
+        
+        //Is this fish on screen
+        bool isOnScreen;
 
         //Speed of this fish
         int curSpeed;
