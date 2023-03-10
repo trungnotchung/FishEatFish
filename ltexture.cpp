@@ -216,6 +216,7 @@ void LTexture::reset()
 		else 
 			curPosition.x = SCREEN_WIDTH;
 		curPosition.y = randNum(0, SCREEN_HEIGHT);
+		curPart = 0;
 	}	
 
 }

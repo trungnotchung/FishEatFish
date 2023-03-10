@@ -1,5 +1,6 @@
 #ifndef _GAME_H
 #define _GAME_H
+
 #include <string.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -27,6 +28,12 @@ const int pt[] = {2000, 20, 200, 1, 1, 20000};
 const int sp[] = {3, 2, 1, 1, 2, 3};
 //numPart
 const int np[] = {4, 4, 6, 4, 6, 6};
+
+const int limitPoint[] = {1, 20, 200, 2000, 20000, 2000000};
+
+const int limitSize[] = {48, 72, 96, 120, 144, 168};
+
+const int cntFish[] = {30, 20, 15, 10, 5};
 
 class LGame
 {
@@ -57,10 +64,17 @@ class LGame
         //Render a fish
         void render(LTexture &curTexture);
 
+        //Result if your fish attack a fish
+        int attackResult(LTexture &attackFish, LTexture &targetFish);
+
         //Init fish
         void setUpFish();
 
-        void close();
+        //set AI for fish
+        void fishAI();
+
+        //Check if start new game
+        bool startNewGame(SDL_Event* e);
 
         void reset();
 
@@ -71,8 +85,10 @@ class LGame
         LTexture gAnimal[TOTAL_ANIMAL];
         LTexture curBackGround;
         LTexture yourFish;
-        LTexture fishOnScreen[TOTAL_ANIMAL * 30];
+        LTexture fishOnScreen[TOTAL_ANIMAL * 50];
+        LTexture gameLose, newGame, waitScreen;
         int totalFish;
+        bool isLose, isStart;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;
