@@ -59,6 +59,9 @@ class LTexture
         //Set this texture is a fish
         void setFish();
 
+        //Set this texture is not a fish
+        void unSetFish();
+
         //Set point for this fish
         void setPoint(int _point);
 

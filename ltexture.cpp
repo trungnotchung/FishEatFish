@@ -176,6 +176,11 @@ void LTexture::setFish()
 	isFish = true;
 }
 
+void LTexture::unSetFish()
+{
+	isFish = false;
+}
+
 void LTexture::setPoint(int _point)
 {
 	curPoint = _point;

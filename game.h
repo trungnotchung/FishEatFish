@@ -20,6 +20,8 @@ enum Animal
     TOTAL_ANIMAL = 6
 };
 
+//permutation of fish
+const int perm[] = {EEL, JELLYFISH, TURTLE, SHARK, OCTOPUS, LANTERNSHARK};
 //size
 const int sz[] = {120, 72, 96, 48, 48, 144};
 //point
@@ -80,12 +82,17 @@ class LGame
 
         void free();
 
+        string toString(int score);
+
+        void renderScore();
+
         SDL_Point lastestMousePosition(SDL_Event* e);
 
         LTexture gAnimal[TOTAL_ANIMAL];
         LTexture curBackGround;
         LTexture yourFish;
         LTexture fishOnScreen[TOTAL_ANIMAL * 50];
+        LTexture textScore[TOTAL_ANIMAL];
         LTexture gameLose, newGame, waitScreen;
         int totalFish;
         bool isLose, isStart;
