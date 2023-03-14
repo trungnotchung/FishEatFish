@@ -222,6 +222,7 @@ void LTexture::reset()
 			curPosition.x = SCREEN_WIDTH;
 		curPosition.y = randNum(0, SCREEN_HEIGHT);
 		curPart = 0;
+		haveAI = randNum(0, 1);
 	}	
 
 }
@@ -242,6 +243,7 @@ LTexture::LTexture()
 	isOnScreen = false;
 	left = false;
 	right = false;
+	haveAI = false;
 }
 
 LTexture::~LTexture()
@@ -269,5 +271,6 @@ void LTexture::free()
 		isOnScreen = false;
 		left = false;
 		right = false;
+		haveAI = false;
 	}
 }

@@ -2,9 +2,9 @@
 #define _VARIABLE_H
 
 #include <bits/stdc++.h>
-const int SCREEN_WIDTH = 960;
-const int SCREEN_HEIGHT = 640;
+const int SCREEN_WIDTH = 1120;
+const int SCREEN_HEIGHT = 750;
 const int IMAGE_SIZE = 48;
 const int CNT_FRAME = 4;
-const int RANDOM_TIME = 50;
+const int RANDOM_TIME = 35;
 #endif

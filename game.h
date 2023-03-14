@@ -26,13 +26,13 @@ const int perm[] = {EEL, JELLYFISH, TURTLE, SHARK, OCTOPUS, LANTERNSHARK};
 //size
 const int sz[] = {120, 72, 96, 48, 48, 144};
 //point
-const int pt[] = {2000, 20, 200, 1, 1, 20000};
+const int pt[] = {8000, 20, 400, 1, 1, 160000};
 //speed
 const int sp[] = {3, 2, 1, 1, 2, 3};
 //numPart
 const int np[] = {4, 4, 6, 4, 6, 6};
 
-const int limitPoint[] = {1, 20, 200, 2000, 20000, 2000000};
+const int limitPoint[] = {1, 20, 400, 8000, 160000, 2000000};
 
 const int limitSize[] = {48, 72, 96, 120, 144, 168};
 

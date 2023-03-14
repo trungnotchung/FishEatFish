@@ -97,6 +97,9 @@ class LTexture
 
         //Rectangle of each part
         SDL_Rect gSpriteClips[10];
+
+        //Does this fish have AI
+        bool haveAI;
     private:
         //The actual hardware texture
         SDL_Texture* mTexture;

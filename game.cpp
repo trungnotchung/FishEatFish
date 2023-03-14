@@ -40,7 +40,7 @@ void LGame::loadGame()
 	for(int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[i].setWidth(80), gAnimal[i].setHeight(60);
 	for(int i = 0; i < TOTAL_ANIMAL; ++i)
-		gAnimal[perm[i]].curPosition.x = i * 100 + 180, gAnimal[perm[i]].curPosition.y = 0;
+		gAnimal[perm[i]].curPosition.x = i * 100 + 295, gAnimal[perm[i]].curPosition.y = 0;
 	for(int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[i].unSetFish();
 
@@ -100,7 +100,7 @@ void LGame::playGame()
 		if (!isStart)
 		{
 			waitScreen.render(gRenderer, 0, 0);
-			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 400);
+			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			SDL_RenderPresent(gRenderer);
 		}
 		else if (!isLose)
@@ -181,7 +181,7 @@ void LGame::playGame()
 		else
 		{
 			gameLose.render(gRenderer, 0, 0);
-			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 400);
+			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			SDL_RenderPresent(gRenderer);
 		}
 	}
@@ -300,6 +300,7 @@ SDL_Point LGame::lastestMousePosition(SDL_Event *e)
 		SDL_GetMouseState(&x, &y);
 		res.x = x, res.y = y;
 	}
+
 	return res;
 }
 
@@ -346,7 +347,7 @@ bool LGame::startNewGame(SDL_Event *e)
 	{
 		int x, y;
 		SDL_GetMouseState(&x, &y);
-		if (417 <= x && x <= 540 && 453 <= y && y <= 483)
+		if (499 <= x && x <= 620 && 555 <= y && y <= 587)
 			return true;
 	}
 	return false;
@@ -446,7 +447,10 @@ void LGame::fishAI()
 			if (yourFish.getCurPoint() < fishOnScreen[i].getCurPoint() && fishOnScreen[i].right && fishOnScreen[i].curPosition.x > yourFish.curPosition.x)
 				continue;
 
-			if (!randNum(0, 1))
+			if(fishOnScreen[i].haveAI == false)
+				continue;
+
+			if(!randNum(0, 1))
 				continue;
 
 			if (yourFish.getCurPoint() >= fishOnScreen[i].getCurPoint())
@@ -511,17 +515,20 @@ void LGame::renderScore()
 	for(int i=0; i<TOTAL_ANIMAL; ++i)
 	{
 		textScore[i].free();
-		string text = ": ";
+		string text = "";
 		if(i == LANTERNSHARK)
 			text += toString(yourFish.getCurPoint());
 		else
 			text += toString(gAnimal[i].getCurPoint());
+		while((int)text.length() < 6)
+			text += ' ';
+		text = ": " + text;
 		loadString(textScore[i], "fonts/gomarice_no_continue.ttf", text);
-		textScore[i].setWidth(35), textScore[i].setHeight(20);
 	}
 	for(int i=0; i<TOTAL_ANIMAL; ++i)
 	{
-		textScore[perm[i]].render(gRenderer, i * 100 + 230, 10);
+		textScore[perm[i]].setWidth(50), textScore[i].setHeight(30);
+		textScore[perm[i]].render(gRenderer, i * 100 + 345, 10);
 	}
 }
 
