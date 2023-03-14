@@ -43,6 +43,8 @@ void LGame::loadGame()
 		gAnimal[perm[i]].curPosition.x = i * 100 + 180, gAnimal[perm[i]].curPosition.y = 0;
 	for(int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[i].unSetFish();
+
+	myMusic.loadMusic("sounds/sound1.mp3");
 }
 
 void LGame::playGame()
@@ -103,7 +105,7 @@ void LGame::playGame()
 		}
 		else if (!isLose)
 		{
-
+			myMusic.playMusic();
 			fishAI();
 
 			for (int i = 0; i < totalFish; ++i)
@@ -173,6 +175,7 @@ void LGame::playGame()
 			if (isLose)
 			{
 				SDL_Delay(1000);
+				myMusic.stopMusic();
 			}
 		}
 		else
@@ -190,7 +193,7 @@ bool LGame::init()
 	bool success = true;
 
 	// Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
 	{
 		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
 		success = false;
@@ -235,6 +238,12 @@ bool LGame::init()
 				if (TTF_Init() == -1)
 				{
 					printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+					success = false;
+				}
+
+				if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+				{
+					printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
 					success = false;
 				}
 			}
@@ -523,6 +532,7 @@ void LGame::reset()
 	for (int i = 0; i < totalFish; ++i)
 		fishOnScreen[i].reset();
 	isLose = false;
+	myMusic.stopMusic();
 }
 
 LGame::LGame()
@@ -563,6 +573,7 @@ void LGame::free()
 		textScore[i].free();
 	isLose = false;
 	isStart = false;
+	myMusic.free();
 	// Quit SDL subsystems
 	IMG_Quit();
 	SDL_Quit();

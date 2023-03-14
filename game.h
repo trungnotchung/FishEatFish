@@ -8,6 +8,7 @@
 #include "lbutton.h"
 #include "lrandom.h"
 #include "variable.h"
+#include "lsound.h"
 
 enum Animal
 {
@@ -96,6 +97,7 @@ class LGame
         LTexture gameLose, newGame, waitScreen;
         int totalFish;
         bool isLose, isStart;
+        LSound myMusic;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;

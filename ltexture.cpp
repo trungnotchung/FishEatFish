@@ -151,8 +151,8 @@ void LTexture::setImagePart(int _numPart)
 	{
 		gSpriteClips[i].x = i * IMAGE_SIZE;
 		gSpriteClips[i].y = 0;
-		gSpriteClips[i].w = IMAGE_SIZE;
-		gSpriteClips[i].h = IMAGE_SIZE;
+		gSpriteClips[i].w = IMAGE_SIZE - 2;
+		gSpriteClips[i].h = IMAGE_SIZE - 2;
 	}
 }
 

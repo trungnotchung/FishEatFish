@@ -11,7 +11,7 @@
 set -u -e
 
 # Compile it and output to executable called 'app'
-g++ lrandom.cpp game.cpp main.cpp ltexture.cpp -I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 -framework SDL2_image -framework SDL2_ttf -o main
+g++ lrandom.cpp game.cpp main.cpp ltexture.cpp lsound.cpp -I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 -framework SDL2_image -framework SDL2_ttf -framework SDL2_mixer -o main
 
 # runs the app
 ./main
