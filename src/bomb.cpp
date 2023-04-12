@@ -1,24 +1,18 @@
-#include "background.h"
+#include "bomb.h"
 
-LBackGround::LBackGround()
+LBomb::LBomb()
 {
-	mWidth = SCREEN_WIDTH;
-	mHeight = SCREEN_WIDTH;
+	mWidth = 0;
+	mHeight = 0;
 	mTexture = NULL;
 }
 
-LBackGround::~LBackGround()
+LBomb::~LBomb()
 {
 	free();
 }
 
-void LBackGround::render(SDL_Renderer *gRenderer, int x, int y, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip)
-{
-	SDL_Rect renderQuad = {x, y, mWidth, mHeight};
-	SDL_RenderCopyEx(gRenderer, mTexture, clip, &renderQuad, angle, center, flip);
-}
-
-bool LBackGround::loadFromFile(std::string path, SDL_Renderer *gRenderer)
+bool LBomb::loadFromFile(std::string path, SDL_Renderer *gRenderer)
 {
 	// Get rid of preexisting texture
 	free();
@@ -46,8 +40,8 @@ bool LBackGround::loadFromFile(std::string path, SDL_Renderer *gRenderer)
 		else
 		{
 			// Get image dimensions
-			mWidth = SCREEN_WIDTH;
-			mHeight = SCREEN_HEIGHT;
+			mWidth = loadedSurface->w;
+			mHeight = loadedSurface->h;
 		}
 
 		// Get rid of old loaded surface
@@ -59,45 +53,59 @@ bool LBackGround::loadFromFile(std::string path, SDL_Renderer *gRenderer)
 	return mTexture != NULL;
 }
 
-void LBackGround::setColor(Uint8 red, Uint8 green, Uint8 blue)
+void LBomb::render(SDL_Renderer *gRenderer, int x, int y, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip)
+{
+	// Set rendering space and render to screen
+	SDL_Rect renderQuad = {x, y, mWidth, mHeight};
+
+	// Set clip rendering dimensions
+	if (clip != NULL)
+	{
+		renderQuad.w = clip->w;
+		renderQuad.h = clip->h;
+	}
+	SDL_RenderCopyEx(gRenderer, mTexture, clip, &renderQuad, angle, center, flip);
+}
+
+void LBomb::setColor(Uint8 red, Uint8 green, Uint8 blue)
 {
 	// Modulate texture rgb
 	SDL_SetTextureColorMod(mTexture, red, green, blue);
 }
 
-void LBackGround::setBlendMode(SDL_BlendMode blending)
+void LBomb::setBlendMode(SDL_BlendMode blending)
 {
 	// Set blending function
 	SDL_SetTextureBlendMode(mTexture, blending);
 }
 
-void LBackGround::setAlpha(Uint8 alpha)
+void LBomb::setAlpha(Uint8 alpha)
 {
 	// Modulate texture alpha
 	SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
-void LBackGround::setWidth(int w)
+void LBomb::setWidth(int w)
 {
 	mWidth = w;
 }
 
-void LBackGround::setHeight(int h)
+void LBomb::setHeight(int h)
 {
 	mHeight = h;
 }
 
-int LBackGround::getWidth()
+int LBomb::getWidth()
 {
 	return mWidth;
 }
 
-int LBackGround::getHeight()
+int LBomb::getHeight()
 {
 	return mHeight;
 }
 
-void LBackGround::free()
+void LBomb::free()
 {
 	mWidth = 0;
 	mHeight = 0;

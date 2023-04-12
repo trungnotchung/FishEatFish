@@ -10,6 +10,7 @@
 #include "background.h"
 #include "fish.h"
 #include "score.h"
+#include "bomb.h"
 
 enum Animal
 {
@@ -59,6 +60,9 @@ class LGame
         // Load background
         bool loadBackGroundImage(LBackGround &curBackGround, const std::string &path);
 
+        // Load bomb
+        bool loadBombImage(LBomb &curBomb, const std::string &path);
+
         //Load string texture
         bool loadString(LScore &curTexture, const std::string &path, const std::string &str);
 
@@ -83,25 +87,36 @@ class LGame
         //Check if start new game
         bool startNewGame(SDL_Event* e);
 
-        void reset();
-
-        void free();
-
         string toString(int score);
-
+        
+        //Load score on screen
         void renderScore();
 
         SDL_Point lastestMousePosition(SDL_Event* e);
 
-        LBackGround curBackGround;
+        //Init Bomb
+        void setUpBomb();
+
+        //Add a new bomb on screen
+        void addMoreBomb();
+
+        //Render bomb on screen
+        void renderBomb();
+
+        void reset();
+
+        void free();
+
         LFish gAnimal[TOTAL_ANIMAL];
         LFish yourFish;
         LFish fishOnScreen[TOTAL_ANIMAL * 50];
-        LScore textScore[TOTAL_ANIMAL];
         LBackGround gameLose, newGame, waitScreen;
+        LBackGround curBackGround;
+        LScore textScore[TOTAL_ANIMAL];
+        LSound myMusic;
+        LBomb bombOnScreen[10];
         int totalFish;
         bool isLose, isStart;
-        LSound myMusic;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;

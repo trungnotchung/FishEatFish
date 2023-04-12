@@ -11,7 +11,7 @@
 set -u -e
 
 #OBJS specifies which files to compile as part of the project
-OBJS="lrandom.cpp game.cpp main.cpp background.cpp fish.cpp score.cpp lsound.cpp"
+OBJS="lrandom.cpp game.cpp main.cpp background.cpp fish.cpp score.cpp lsound.cpp bomb.cpp"
 
 #CC specifies which compiler we're using
 CC="g++"

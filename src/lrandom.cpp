@@ -2,5 +2,5 @@
 
 int randNum(int l, int r)
 {
-    return l + rand()%(r - l + 1);
+    return l + rand() % (r - l + 1);
 }

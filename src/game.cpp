@@ -10,13 +10,13 @@ void LGame::loadGame()
 		loadFish(gAnimal[i], i);
 
 	// load Background
-	loadBackGroundImage(curBackGround, "../pictures/simple/1.png");
+	loadBackGroundImage(curBackGround, "../pictures/simple/2.png");
 
 	loadBackGroundImage(gameLose, "../pictures/simple/gamelose.png");
 
 	loadBackGroundImage(newGame, "../pictures/simple/newgame.png");
 
-	loadBackGroundImage(waitScreen, "../pictures/simple/fisheatfish.png");
+	loadBackGroundImage(waitScreen, "../pictures/simple/fisheatfish2.png");
 
 	// Set lantern shark to be your fish
 	yourFish = gAnimal[LANTERNSHARK];
@@ -28,13 +28,15 @@ void LGame::loadGame()
 	yourFish.curPosition.x = 0, yourFish.curPosition.y = 0;
 
 	setUpFish();
-	
-	//set height and width for render score
-	for(int i = 0; i < TOTAL_ANIMAL; ++i)
+
+	setUpBomb();
+
+	// set height and width for render score
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[i].setWidth(80), gAnimal[i].setHeight(60);
-	for(int i = 0; i < TOTAL_ANIMAL; ++i)
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[i].setNotFish();
-	for(int i = 0; i < TOTAL_ANIMAL; ++i)
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[perm[i]].curPosition.x = i * 100 + 295, gAnimal[perm[i]].curPosition.y = 0;
 
 	myMusic.loadMusic("../sounds/sound1.mp3");
@@ -48,6 +50,7 @@ void LGame::playGame()
 	SDL_Event e;
 
 	int timer = 0;
+	int timeBomb = 0;
 	// While application is running
 	while (!quit)
 	{
@@ -130,6 +133,14 @@ void LGame::playGame()
 				addNewFish();
 				timer = 0;
 			}
+			
+			// Add a new bomb
+			++timeBomb;
+			if(timeBomb == TIME_BOMB)
+			{
+				addMoreBomb();
+				timeBomb = 0;
+			}
 
 			// Fish eat fish
 			for (int i = 0; i < totalFish; ++i)
@@ -156,6 +167,7 @@ void LGame::playGame()
 			curBackGround.render(gRenderer, 0, 0);
 			render(yourFish);
 			renderScore();
+			renderBomb();
 
 			for (int i = 0; i < totalFish; ++i)
 			{
@@ -234,9 +246,9 @@ bool LGame::init()
 					success = false;
 				}
 
-				if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+				if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
 				{
-					printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+					printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
 					success = false;
 				}
 			}
@@ -274,8 +286,8 @@ bool LGame::loadFishImage(LFish &curFish, const std::string &path)
 	return success;
 }
 
- bool LGame::loadBackGroundImage(LBackGround &curBackGround, const std::string &path)
- {
+bool LGame::loadBackGroundImage(LBackGround &curBackGround, const std::string &path)
+{
 	// Loading success flag
 	bool success = true;
 
@@ -286,7 +298,21 @@ bool LGame::loadFishImage(LFish &curFish, const std::string &path)
 		success = false;
 	}
 	return success;
- }
+}
+
+bool LGame::loadBombImage(LBomb &curBomb, const std::string &path)
+{
+	// Loading success flag
+	bool success = true;
+
+	// Load sprites
+	if (!curBomb.loadFromFile(path, gRenderer))
+	{
+		printf("Failed to load button sprite texture!\n");
+		success = false;
+	}
+	return success;
+}
 
 void LGame::render(LFish &curFish)
 {
@@ -453,10 +479,10 @@ void LGame::fishAI()
 			if (yourFish.getCurPoint() < fishOnScreen[i].getCurPoint() && fishOnScreen[i].right && fishOnScreen[i].curPosition.x > yourFish.curPosition.x)
 				continue;
 
-			if(fishOnScreen[i].haveAI == false)
+			if (fishOnScreen[i].haveAI == false)
 				continue;
 
-			if(!randNum(0, 1))
+			if (!randNum(0, 1))
 				continue;
 
 			if (yourFish.getCurPoint() >= fishOnScreen[i].getCurPoint())
@@ -514,29 +540,71 @@ string LGame::toString(int score)
 
 void LGame::renderScore()
 {
-	for(int i=0; i<TOTAL_ANIMAL; ++i)
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 	{
 		render(gAnimal[perm[i]]);
 		// cout << gAnimal[i].getHeight() << " " << gAnimal[i].getWidth() << " ";
 	}
 	// cout << '\n';
-	for(int i=0; i<TOTAL_ANIMAL; ++i)
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 	{
 		textScore[i].free();
 		string text = "";
-		if(i == LANTERNSHARK)
+		if (i == LANTERNSHARK)
 			text += toString(yourFish.getCurPoint());
 		else
 			text += toString(gAnimal[i].getCurPoint());
-		while((int)text.length() < 6)
+		while ((int)text.length() < 6)
 			text += ' ';
 		text = ": " + text;
 		loadString(textScore[i], "../fonts/gomarice_no_continue.ttf", text);
 	}
-	for(int i=0; i<TOTAL_ANIMAL; ++i)
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 	{
 		textScore[perm[i]].setWidth(50), textScore[i].setHeight(30);
 		textScore[perm[i]].render(gRenderer, i * 100 + 345, 10);
+	}
+}
+
+void LGame::setUpBomb()
+{
+	for(int i = 0; i < 10; ++i)
+	{
+		loadBombImage(bombOnScreen[i], "../pictures/simple/bomb.png");
+		bombOnScreen[i].setWidth(48);
+		bombOnScreen[i].setHeight(48);
+	}
+}
+
+void LGame::addMoreBomb()
+{
+	for(int i = 0; i < 10; ++i)
+	{
+		if(!bombOnScreen[i].isOnScreen)
+		{
+			bombOnScreen[i].isOnScreen = true;
+			bombOnScreen[i].curPosition.y = 0;
+			bombOnScreen[i].curPosition.x = randNum(20, SCREEN_WIDTH - 20);
+			return;
+		}
+	}
+}
+
+void LGame::renderBomb()
+{
+	for(int i = 0; i < 10; ++i)
+	{
+		if(bombOnScreen[i].isOnScreen)
+		{
+			bombOnScreen[i].curPosition.y += BOMB_SPEED;
+			if(bombOnScreen[i].curPosition.y > SCREEN_HEIGHT)
+				bombOnScreen[i].isOnScreen = false;
+		}
+
+		if(bombOnScreen[i].isOnScreen)
+		{
+			bombOnScreen[i].render(gRenderer, bombOnScreen[i].curPosition.x, bombOnScreen[i].curPosition.y);
+		}
 	}
 }
 
@@ -546,6 +614,8 @@ void LGame::reset()
 	yourFish.setPoint(pt[LANTERNSHARK]);
 	for (int i = 0; i < totalFish; ++i)
 		fishOnScreen[i].reset();
+	for(int i = 0; i < 10; ++i)
+		bombOnScreen[i].isOnScreen = false;
 	isLose = false;
 	myMusic.stopMusic();
 }
@@ -583,8 +653,10 @@ void LGame::free()
 	gameLose.free();
 	newGame.free();
 	waitScreen.free();
-	for(int i=0; i<TOTAL_ANIMAL; ++i)
+	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		textScore[i].free();
+	for(int i = 0; i < 10; ++i)
+		bombOnScreen[i].free();
 	isLose = false;
 	isStart = false;
 	myMusic.free();
