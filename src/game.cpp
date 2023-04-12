@@ -40,6 +40,11 @@ void LGame::loadGame()
 		gAnimal[perm[i]].curPosition.x = i * 100 + 295, gAnimal[perm[i]].curPosition.y = 0;
 
 	myMusic.loadMusic("../sounds/sound1.mp3");
+	explosionSound = Mix_LoadWAV("../sounds/explosion3.mp3");
+	if(explosionSound == NULL)
+	{
+		cout << "Failed to load bomb explosion sound!!!";
+	}
 }
 
 void LGame::playGame()
@@ -93,6 +98,7 @@ void LGame::playGame()
 
 		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 		SDL_RenderClear(gRenderer);
+
 		if (!isStart)
 		{
 			waitScreen.render(gRenderer, 0, 0);
@@ -101,30 +107,13 @@ void LGame::playGame()
 		}
 		else if (!isLose)
 		{
+			//No explosion
+			for(int i = 0; i < 10; ++i)
+				explosion[i].isOnScreen = false;
+
 			myMusic.playMusic();
+
 			fishAI();
-
-			for (int i = 0; i < totalFish; ++i)
-			{
-				if (!fishOnScreen[i].isOnScreen)
-					continue;
-				if (fishOnScreen[i].right)
-					fishOnScreen[i].curPosition.x += fishOnScreen[i].curSpeed;
-				else
-					fishOnScreen[i].curPosition.x -= fishOnScreen[i].curSpeed;
-				// std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
-				if (fishOnScreen[i].curPosition.x < 0 || fishOnScreen[i].curPosition.x > SCREEN_WIDTH)
-				{
-					fishOnScreen[i].reset();
-					continue;
-				}
-
-				if (fishOnScreen[i].curPosition.y < 0 || fishOnScreen[i].curPosition.y > SCREEN_HEIGHT)
-				{
-					fishOnScreen[i].reset();
-					continue;
-				}
-			}
 
 			// Add a new fish
 			++timer;
@@ -138,26 +127,13 @@ void LGame::playGame()
 			++timeBomb;
 			if(timeBomb == TIME_BOMB)
 			{
-				addMoreBomb();
+				addNewBomb();
 				timeBomb = 0;
 			}
 
-			// Fish eat fish
-			for (int i = 0; i < totalFish; ++i)
-			{
-				if (!fishOnScreen[i].isOnScreen)
-					continue;
-				int tmp = attackResult(yourFish, fishOnScreen[i]);
-				if (tmp == 0)
-					continue;
-				if (tmp == 1)
-				{
-					yourFish.setPoint(yourFish.getCurPoint() + fishOnScreen[i].getCurPoint());
-					fishOnScreen[i].reset();
-				}
-				else
-					isLose = true;
-			}
+			updateFishPosition();
+			eatOtherFish();
+
 			// Increase your fish's size
 			for (int i = 0; i < TOTAL_ANIMAL; ++i)
 			{
@@ -168,6 +144,8 @@ void LGame::playGame()
 			render(yourFish);
 			renderScore();
 			renderBomb();
+			checkBombExplosion();
+			bombKillFish();
 
 			for (int i = 0; i < totalFish; ++i)
 			{
@@ -179,7 +157,7 @@ void LGame::playGame()
 			SDL_RenderPresent(gRenderer);
 			if (isLose)
 			{
-				SDL_Delay(1000);
+				SDL_Delay(2000);
 				myMusic.stopMusic();
 			}
 		}
@@ -467,6 +445,74 @@ void LGame::setUpFish()
 	}
 }
 
+void LGame::updateFishPosition()
+{
+	for (int i = 0; i < totalFish; ++i)
+	{
+		if (!fishOnScreen[i].isOnScreen)
+			continue;
+		
+		// //If this fish is near a bomb, it swim faster
+		int speed = fishOnScreen[i].curSpeed;
+		// for(int j = 0; j < 10; ++j)
+		// {
+		// 	if(!bombOnScreen[j].isOnScreen)
+		// 	continue;
+		// 	SDL_Point attackCenter;
+		// 	attackCenter.x = bombOnScreen[j].curPosition.x + 24;
+		// 	attackCenter.y = bombOnScreen[j].curPosition.y + 24;
+
+		// 	SDL_Point targetCenter;
+		// 	targetCenter.x = fishOnScreen[i].curPosition.x + fishOnScreen[i].getCurSize() / 2;
+		// 	targetCenter.y = fishOnScreen[i].curPosition.y + fishOnScreen[i].getCurSize() / 2;
+
+		// 	double dis = sqrt(1.0 * (attackCenter.x - targetCenter.x) * (attackCenter.x - targetCenter.x) + 1.0 * (attackCenter.y - targetCenter.y) * (attackCenter.y - targetCenter.y));
+
+		// 	if (dis <= 40)
+		// 	{
+		// 		speed = 5;
+		// 		fishOnScreen[i].curPosition.y += 5;
+		// 	}
+		// }
+		if (fishOnScreen[i].right)
+			fishOnScreen[i].curPosition.x += speed;
+		else
+			fishOnScreen[i].curPosition.x -= speed;
+		// std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
+		if (fishOnScreen[i].curPosition.x < 0 || fishOnScreen[i].curPosition.x > SCREEN_WIDTH)
+		{
+			fishOnScreen[i].reset();
+			continue;
+		}
+
+		if (fishOnScreen[i].curPosition.y < 0 || fishOnScreen[i].curPosition.y > SCREEN_HEIGHT)
+		{
+			fishOnScreen[i].reset();
+			continue;
+		}
+	}
+}
+
+void LGame::eatOtherFish()
+{
+	// Fish eat fish
+	for (int i = 0; i < totalFish; ++i)
+	{
+		if (!fishOnScreen[i].isOnScreen)
+			continue;
+		int tmp = attackResult(yourFish, fishOnScreen[i]);
+		if (tmp == 0)
+			continue;
+		if (tmp == 1)
+		{
+			yourFish.setPoint(yourFish.getCurPoint() + fishOnScreen[i].getCurPoint());
+			fishOnScreen[i].reset();
+		}
+		else
+			isLose = true;
+	}
+}
+
 void LGame::fishAI()
 {
 	for (int i = 0; i < totalFish; ++i)
@@ -574,9 +620,15 @@ void LGame::setUpBomb()
 		bombOnScreen[i].setWidth(48);
 		bombOnScreen[i].setHeight(48);
 	}
+	for(int i = 0; i < 10; ++i)
+	{
+		loadBombImage(explosion[i], "../pictures/simple/explosion1.png");
+		explosion[i].setWidth(48);
+		explosion[i].setHeight(48);
+	}
 }
 
-void LGame::addMoreBomb()
+void LGame::addNewBomb()
 {
 	for(int i = 0; i < 10; ++i)
 	{
@@ -608,6 +660,73 @@ void LGame::renderBomb()
 	}
 }
 
+void LGame::checkBombExplosion()
+{
+	for(int i = 0; i < 10; ++i)
+	{
+		if(!bombOnScreen[i].isOnScreen)
+			continue;
+		SDL_Point attackCenter;
+		attackCenter.x = bombOnScreen[i].curPosition.x + 24;
+		attackCenter.y = bombOnScreen[i].curPosition.y + 24;
+
+		SDL_Point targetCenter;
+		targetCenter.x = yourFish.curPosition.x + yourFish.getCurSize() / 2;
+		targetCenter.y = yourFish.curPosition.y + yourFish.getCurSize() / 2;
+
+		double dis = sqrt(1.0 * (attackCenter.x - targetCenter.x) * (attackCenter.x - targetCenter.x) + 1.0 * (attackCenter.y - targetCenter.y) * (attackCenter.y - targetCenter.y));
+
+		if (dis <= 1.0 * min(yourFish.getCurSize(), 48) / 2)
+		{
+			isLose = true;
+			addNewExplosion(bombOnScreen[i].curPosition.x, bombOnScreen[i].curPosition.y);
+		}
+	}
+}
+
+void LGame::addNewExplosion(int x, int y)
+{
+	for(int i = 0; i < 10; ++i)
+	{
+		if(explosion[i].isOnScreen) continue;
+		explosion[i].curPosition.x = x;
+		explosion[i].curPosition.y = y;
+		explosion[i].render(gRenderer, explosion[i].curPosition.x, explosion[i].curPosition.y);
+	}
+	Mix_PlayChannel( -1, explosionSound, 0 );
+}
+
+void LGame::bombKillFish()
+{
+	for (int i = 0; i < totalFish; ++i)
+	{
+		if (!fishOnScreen[i].isOnScreen)
+			continue;
+		
+		for(int j = 0; j < 10; ++j)
+		{
+			if(!bombOnScreen[j].isOnScreen)
+			continue;
+			SDL_Point attackCenter;
+			attackCenter.x = bombOnScreen[j].curPosition.x + 24;
+			attackCenter.y = bombOnScreen[j].curPosition.y + 24;
+
+			SDL_Point targetCenter;
+			targetCenter.x = fishOnScreen[i].curPosition.x + fishOnScreen[i].getCurSize() / 2;
+			targetCenter.y = fishOnScreen[i].curPosition.y + fishOnScreen[i].getCurSize() / 2;
+
+			double dis = sqrt(1.0 * (attackCenter.x - targetCenter.x) * (attackCenter.x - targetCenter.x) + 1.0 * (attackCenter.y - targetCenter.y) * (attackCenter.y - targetCenter.y));
+
+			if (dis <= 40)
+			{
+				addNewExplosion(bombOnScreen[j].curPosition.x, bombOnScreen[j].curPosition.y);
+				fishOnScreen[i].reset();
+				bombOnScreen[j].isOnScreen = false;
+			}
+		}
+	}
+}
+
 void LGame::reset()
 {
 	yourFish.setSize(sz[LANTERNSHARK]);
@@ -627,6 +746,7 @@ LGame::LGame()
 	totalFish = 0;
 	isLose = false;
 	isStart = false;
+	explosionSound = NULL;
 }
 
 LGame::~LGame()
@@ -657,9 +777,13 @@ void LGame::free()
 		textScore[i].free();
 	for(int i = 0; i < 10; ++i)
 		bombOnScreen[i].free();
+	for(int i = 0; i < 10; ++i)
+		explosion[i].free();
 	isLose = false;
 	isStart = false;
 	myMusic.free();
+	Mix_FreeChunk(explosionSound);
+	explosionSound = NULL;
 	// Quit SDL subsystems
 	IMG_Quit();
 	SDL_Quit();

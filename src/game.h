@@ -94,14 +94,29 @@ class LGame
 
         SDL_Point lastestMousePosition(SDL_Event* e);
 
+        //Update other fish's position
+        void updateFishPosition();
+
+        //Eat ohter fish
+        void eatOtherFish();
+
         //Init Bomb
         void setUpBomb();
 
         //Add a new bomb on screen
-        void addMoreBomb();
+        void addNewBomb();
 
         //Render bomb on screen
         void renderBomb();
+
+        //Check if your fish is killed by bomb
+        void checkBombExplosion();
+
+        //Check if bomb kill other fish
+        void bombKillFish();
+
+        //Render a new explosion on screen
+        void addNewExplosion(int x, int y);
 
         void reset();
 
@@ -114,7 +129,8 @@ class LGame
         LBackGround curBackGround;
         LScore textScore[TOTAL_ANIMAL];
         LSound myMusic;
-        LBomb bombOnScreen[10];
+        Mix_Chunk *explosionSound = NULL;
+        LBomb bombOnScreen[10], explosion[10];
         int totalFish;
         bool isLose, isStart;
     private:

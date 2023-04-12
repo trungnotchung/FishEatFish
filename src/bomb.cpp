@@ -5,6 +5,7 @@ LBomb::LBomb()
 	mWidth = 0;
 	mHeight = 0;
 	mTexture = NULL;
+	isOnScreen = false;
 }
 
 LBomb::~LBomb()
