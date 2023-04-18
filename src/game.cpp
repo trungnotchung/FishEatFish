@@ -10,13 +10,24 @@ void LGame::loadGame()
 		loadFish(gAnimal[i], i);
 
 	// load Background
-	loadBackGroundImage(curBackGround, "../pictures/simple/2.png");
+	loadBackGroundImage(curBackGround, "../pictures/simple/1.png");
 
 	loadBackGroundImage(gameLose, "../pictures/simple/gamelose.png");
 
 	loadBackGroundImage(newGame, "../pictures/simple/newgame.png");
 
 	loadBackGroundImage(waitScreen, "../pictures/simple/fisheatfish2.png");
+
+	loadBackGroundImage(gBackGround[0], "../pictures/simple/1.png");
+
+	loadBackGroundImage(gBackGround[1], "../pictures/simple/2.png");
+	
+	loadBackGroundImage(gBackGround[2], "../pictures/simple/3.png");
+
+	loadBackGroundImage(gBackGround[3], "../pictures/simple/4.png");
+
+	for(int i = 0; i <= 3; ++i)
+		gBackGround[i].setWidth(210), gBackGround[i].setHeight(210);
 
 	// Set lantern shark to be your fish
 	yourFish = gAnimal[LANTERNSHARK];
@@ -40,8 +51,8 @@ void LGame::loadGame()
 		gAnimal[perm[i]].curPosition.x = i * 100 + 295, gAnimal[perm[i]].curPosition.y = 0;
 
 	myMusic.loadMusic("../sounds/sound1.mp3");
-	explosionSound = Mix_LoadWAV("../sounds/explosion3.mp3");
-	if(explosionSound == NULL)
+	explosionSound = Mix_LoadWAV("../sounds/explosion1.mp3");
+	if (explosionSound == NULL)
 	{
 		cout << "Failed to load bomb explosion sound!!!";
 	}
@@ -105,10 +116,19 @@ void LGame::playGame()
 			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			SDL_RenderPresent(gRenderer);
 		}
+		// else if(!haveBackGround)
+		// {
+		// 	waitScreen.render(gRenderer, 0, 0);
+		// 	for(int i = 0; i < 4; ++i)
+		// 		gBackGround[i].render(gRenderer, 50 + i * 270, 300);
+		// 	SDL_RenderPresent(gRenderer);
+		// }
 		else if (!isLose)
 		{
-			//No explosion
-			for(int i = 0; i < 10; ++i)
+			++curTime;
+
+			// No explosion
+			for (int i = 0; i < 10; ++i)
 				explosion[i].isOnScreen = false;
 
 			myMusic.playMusic();
@@ -122,15 +142,17 @@ void LGame::playGame()
 				addNewFish();
 				timer = 0;
 			}
-			
+
 			// Add a new bomb
 			++timeBomb;
-			if(timeBomb == TIME_BOMB)
+			if (timeBomb == TIME_BOMB)
 			{
 				addNewBomb();
 				timeBomb = 0;
 			}
 
+			if(curTime - lastTime > COMBO_TIME)
+				curCombo = 0;
 			updateFishPosition();
 			eatOtherFish();
 
@@ -143,6 +165,7 @@ void LGame::playGame()
 			curBackGround.render(gRenderer, 0, 0);
 			render(yourFish);
 			renderScore();
+			renderCombo();
 			renderBomb();
 			checkBombExplosion();
 			bombKillFish();
@@ -327,6 +350,16 @@ void LGame::addNewFish()
 	std::sort(diff.begin(), diff.end());
 
 	std::vector<int> candidates;
+
+	for(int i = 0; i < TOTAL_ANIMAL; ++i)
+	{
+		if(i == LANTERNSHARK)
+			continue;
+		if(yourFish.getCurPoint() > gAnimal[i].getCurPoint())
+			for(int j = 1; j <= 10; ++j)
+				candidates.push_back(j);
+	}
+
 	for (int i = 0; i < diff.size(); ++i)
 	{
 		for (int j = 0; j < cntFish[i]; ++j)
@@ -451,7 +484,7 @@ void LGame::updateFishPosition()
 	{
 		if (!fishOnScreen[i].isOnScreen)
 			continue;
-		
+
 		// //If this fish is near a bomb, it swim faster
 		int speed = fishOnScreen[i].curSpeed;
 		// for(int j = 0; j < 10; ++j)
@@ -507,6 +540,16 @@ void LGame::eatOtherFish()
 		{
 			yourFish.setPoint(yourFish.getCurPoint() + fishOnScreen[i].getCurPoint());
 			fishOnScreen[i].reset();
+			if (curTime - lastTime > COMBO_TIME)
+			{
+				lastTime = curTime = 0;
+				curCombo = 1;
+			}
+			else
+			{
+				lastTime = curTime;
+				++curCombo;
+			}
 		}
 		else
 			isLose = true;
@@ -605,6 +648,7 @@ void LGame::renderScore()
 		text = ": " + text;
 		loadString(textScore[i], "../fonts/gomarice_no_continue.ttf", text);
 	}
+
 	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 	{
 		textScore[perm[i]].setWidth(50), textScore[i].setHeight(30);
@@ -612,15 +656,37 @@ void LGame::renderScore()
 	}
 }
 
+void LGame::renderCombo()
+{
+	textCombo.free();
+	string text = "Combo: x";
+	text += toString(curCombo);
+	loadString(textCombo, "../fonts/gomarice_no_continue.ttf", text);
+
+	textCombo.setWidth(80), textCombo.setHeight(40);
+	textCombo.render(gRenderer, 50, 10);
+}
+
+void LGame::hungryMode()
+{
+	for(int i = 0; i < totalFish; ++i)
+	{
+		if(fishOnScreen[i].isOnScreen && fishOnScreen[i].getCurPoint() <= yourFish.getCurPoint())
+		{
+			yourFish.curPosition = fishOnScreen[i].curPosition;
+		}
+	}
+}
+
 void LGame::setUpBomb()
 {
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		loadBombImage(bombOnScreen[i], "../pictures/simple/bomb.png");
 		bombOnScreen[i].setWidth(48);
 		bombOnScreen[i].setHeight(48);
 	}
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		loadBombImage(explosion[i], "../pictures/simple/explosion1.png");
 		explosion[i].setWidth(48);
@@ -630,9 +696,9 @@ void LGame::setUpBomb()
 
 void LGame::addNewBomb()
 {
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		if(!bombOnScreen[i].isOnScreen)
+		if (!bombOnScreen[i].isOnScreen)
 		{
 			bombOnScreen[i].isOnScreen = true;
 			bombOnScreen[i].curPosition.y = 0;
@@ -644,16 +710,16 @@ void LGame::addNewBomb()
 
 void LGame::renderBomb()
 {
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		if(bombOnScreen[i].isOnScreen)
+		if (bombOnScreen[i].isOnScreen)
 		{
 			bombOnScreen[i].curPosition.y += BOMB_SPEED;
-			if(bombOnScreen[i].curPosition.y > SCREEN_HEIGHT)
+			if (bombOnScreen[i].curPosition.y > SCREEN_HEIGHT)
 				bombOnScreen[i].isOnScreen = false;
 		}
 
-		if(bombOnScreen[i].isOnScreen)
+		if (bombOnScreen[i].isOnScreen)
 		{
 			bombOnScreen[i].render(gRenderer, bombOnScreen[i].curPosition.x, bombOnScreen[i].curPosition.y);
 		}
@@ -662,9 +728,9 @@ void LGame::renderBomb()
 
 void LGame::checkBombExplosion()
 {
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		if(!bombOnScreen[i].isOnScreen)
+		if (!bombOnScreen[i].isOnScreen)
 			continue;
 		SDL_Point attackCenter;
 		attackCenter.x = bombOnScreen[i].curPosition.x + 24;
@@ -686,14 +752,15 @@ void LGame::checkBombExplosion()
 
 void LGame::addNewExplosion(int x, int y)
 {
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		if(explosion[i].isOnScreen) continue;
+		if (explosion[i].isOnScreen)
+			continue;
 		explosion[i].curPosition.x = x;
 		explosion[i].curPosition.y = y;
 		explosion[i].render(gRenderer, explosion[i].curPosition.x, explosion[i].curPosition.y);
 	}
-	Mix_PlayChannel( -1, explosionSound, 0 );
+	Mix_PlayChannel(-1, explosionSound, 0);
 }
 
 void LGame::bombKillFish()
@@ -702,11 +769,11 @@ void LGame::bombKillFish()
 	{
 		if (!fishOnScreen[i].isOnScreen)
 			continue;
-		
-		for(int j = 0; j < 10; ++j)
+
+		for (int j = 0; j < 10; ++j)
 		{
-			if(!bombOnScreen[j].isOnScreen)
-			continue;
+			if (!bombOnScreen[j].isOnScreen)
+				continue;
 			SDL_Point attackCenter;
 			attackCenter.x = bombOnScreen[j].curPosition.x + 24;
 			attackCenter.y = bombOnScreen[j].curPosition.y + 24;
@@ -733,10 +800,12 @@ void LGame::reset()
 	yourFish.setPoint(pt[LANTERNSHARK]);
 	for (int i = 0; i < totalFish; ++i)
 		fishOnScreen[i].reset();
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 		bombOnScreen[i].isOnScreen = false;
 	isLose = false;
 	myMusic.stopMusic();
+	lastTime = curTime = curCombo = 0;
+	haveBackGround = false;
 }
 
 LGame::LGame()
@@ -746,7 +815,9 @@ LGame::LGame()
 	totalFish = 0;
 	isLose = false;
 	isStart = false;
+	haveBackGround = false;
 	explosionSound = NULL;
+	lastTime = curTime = curCombo = 0;
 }
 
 LGame::~LGame()
@@ -773,11 +844,14 @@ void LGame::free()
 	gameLose.free();
 	newGame.free();
 	waitScreen.free();
+	for(int i = 0; i < 4; ++i)
+		gBackGround[i].free();
 	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		textScore[i].free();
-	for(int i = 0; i < 10; ++i)
+	textCombo.free();
+	for (int i = 0; i < 10; ++i)
 		bombOnScreen[i].free();
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 		explosion[i].free();
 	isLose = false;
 	isStart = false;

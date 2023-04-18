@@ -24,7 +24,7 @@ enum Animal
 };
 
 //permutation of fish
-const int perm[] = {EEL, JELLYFISH, TURTLE, SHARK, OCTOPUS, LANTERNSHARK};
+const int perm[] = {LANTERNSHARK, EEL, JELLYFISH, TURTLE, SHARK, OCTOPUS};
 //size
 const int sz[] = {120, 72, 96, 48, 48, 144};
 //point
@@ -92,12 +92,18 @@ class LGame
         //Load score on screen
         void renderScore();
 
+        //Load combo on screen
+        void renderCombo();
+
+        //Enough combo kill, eat all fish you can on screen
+        void hungryMode();
+
         SDL_Point lastestMousePosition(SDL_Event* e);
 
         //Update other fish's position
         void updateFishPosition();
 
-        //Eat ohter fish
+        //Eat other fish
         void eatOtherFish();
 
         //Init Bomb
@@ -127,12 +133,15 @@ class LGame
         LFish fishOnScreen[TOTAL_ANIMAL * 50];
         LBackGround gameLose, newGame, waitScreen;
         LBackGround curBackGround;
+        LBackGround gBackGround[4];
         LScore textScore[TOTAL_ANIMAL];
+        LScore textCombo;
         LSound myMusic;
         Mix_Chunk *explosionSound = NULL;
         LBomb bombOnScreen[10], explosion[10];
         int totalFish;
-        bool isLose, isStart;
+        bool isLose, isStart, haveBackGround;
+        int curTime, lastTime, curCombo;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;

@@ -9,4 +9,6 @@ const int CNT_FRAME = 4;
 const int RANDOM_TIME = 35;
 const int TIME_BOMB = 200;
 const int BOMB_SPEED = 2;
+const int COMBO_TIME = 200;
+const int COMBO = 5;
 #endif
