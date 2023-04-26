@@ -10,30 +10,10 @@ void LGame::loadGame()
 		loadFish(gAnimal[i], i);
 
 	// load Background
-	loadBackGroundImage(curBackGround, "../pictures/simple/1.png");
-
-	loadBackGroundImage(gameLose, "../pictures/simple/gamelose.png");
-
-	loadBackGroundImage(newGame, "../pictures/simple/newgame.png");
-
-	loadBackGroundImage(waitScreen, "../pictures/simple/fisheatfish2.png");
-
-	loadBackGroundImage(gBackGround[0], "../pictures/simple/1.png");
-
-	loadBackGroundImage(gBackGround[1], "../pictures/simple/2.png");
-	
-	loadBackGroundImage(gBackGround[2], "../pictures/simple/3.png");
-
-	loadBackGroundImage(gBackGround[3], "../pictures/simple/4.png");
-
-	for(int i = 0; i <= 3; ++i)
-		gBackGround[i].setWidth(210), gBackGround[i].setHeight(210);
+	setUpBackGround();
 
 	// Set lantern shark to be your fish
 	yourFish = gAnimal[LANTERNSHARK];
-
-	newGame.setWidth(210);
-	newGame.setHeight(140);
 
 	// Set your fish's position
 	yourFish.curPosition.x = 0, yourFish.curPosition.y = 0;
@@ -50,12 +30,11 @@ void LGame::loadGame()
 	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		gAnimal[perm[i]].curPosition.x = i * 100 + 295, gAnimal[perm[i]].curPosition.y = 0;
 
+	loadString(textChoseBackGround, "../fonts/gomarice_no_continue.ttf", "Chose A Map For Hunting");
 	myMusic.loadMusic("../sounds/sound1.mp3");
 	explosionSound = Mix_LoadWAV("../sounds/explosion1.mp3");
-	if (explosionSound == NULL)
-	{
-		cout << "Failed to load bomb explosion sound!!!";
-	}
+	mouseClick = Mix_LoadWAV("../sounds/mouse_click.wav");
+	eatingSound = Mix_LoadWAV("../sounds/chew-21768.mp3");
 }
 
 void LGame::playGame()
@@ -78,6 +57,19 @@ void LGame::playGame()
 			{
 				quit = true;
 			}
+
+			if(e.type == SDL_MOUSEBUTTONDOWN)
+			{
+				Mix_PlayChannel(-1, mouseClick, 0);
+			}
+
+			// if (e.type == SDL_MOUSEBUTTONDOWN)
+			// {
+			// 	int x, y;
+			// 	// Get mouse position
+			// 	SDL_GetMouseState(&x, &y);
+			// 	cout << x << " " << y << '\n';
+			// }
 			SDL_Point p = lastestMousePosition(&e);
 
 			// Update your fish's position
@@ -91,10 +83,20 @@ void LGame::playGame()
 				yourFish.curPosition.y = p.y - yourFish.getCurSize() / 2;
 			}
 
+			if(!watchingHighScore)
+			{
+				if(checkWatchingHighScore(&e))
+					watchingHighScore = true;
+			}
 			if (!isStart)
 			{
 				if (startNewGame(&e))
-					isStart = true;
+					isStart = true, watchingHighScore = false;
+			}
+			else if(!haveBackGround)
+			{
+				if(choseMapBackGround(&e))
+					haveBackGround = true;
 			}
 			else if (isLose)
 			{
@@ -110,19 +112,30 @@ void LGame::playGame()
 		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 		SDL_RenderClear(gRenderer);
 
-		if (!isStart)
+		if(watchingHighScore)
 		{
-			waitScreen.render(gRenderer, 0, 0);
+			choseBackGround.render(gRenderer, 0, 0);
+			renderHighScore();
 			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			SDL_RenderPresent(gRenderer);
 		}
-		// else if(!haveBackGround)
-		// {
-		// 	waitScreen.render(gRenderer, 0, 0);
-		// 	for(int i = 0; i < 4; ++i)
-		// 		gBackGround[i].render(gRenderer, 50 + i * 270, 300);
-		// 	SDL_RenderPresent(gRenderer);
-		// }
+		else if (!isStart)
+		{
+			waitScreen.render(gRenderer, 0, 0);
+			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
+			highScore.render(gRenderer, (SCREEN_WIDTH - highScore.getWidth()) / 2, 600);
+			SDL_RenderPresent(gRenderer);
+		}
+		else if(!haveBackGround)
+		{
+			choseBackGround.render(gRenderer, 0, 0);
+			for(int i = 0; i < 6; ++i)
+				gBackGround[i].render(gRenderer, backgroundPosition[i].first + 20, backgroundPosition[i].second + 20);
+			for(int i = 0; i < 6; ++i)
+				gSlotGame[i].render(gRenderer, backgroundPosition[i].first, backgroundPosition[i].second);
+			textChoseBackGround.render(gRenderer, 400, 30);
+			SDL_RenderPresent(gRenderer);
+		}
 		else if (!isLose)
 		{
 			++curTime;
@@ -180,6 +193,7 @@ void LGame::playGame()
 			SDL_RenderPresent(gRenderer);
 			if (isLose)
 			{
+				highScoreVector.push_back(yourFish.getCurPoint());
 				SDL_Delay(2000);
 				myMusic.stopMusic();
 			}
@@ -188,6 +202,7 @@ void LGame::playGame()
 		{
 			gameLose.render(gRenderer, 0, 0);
 			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
+			highScore.render(gRenderer, (SCREEN_WIDTH - highScore.getWidth()) / 2, 600);
 			SDL_RenderPresent(gRenderer);
 		}
 	}
@@ -259,6 +274,19 @@ bool LGame::init()
 	return success;
 }
 
+string LGame::toString(int score)
+{
+	assert(0 <= score && score <= (int)1e9);
+	string res = "";
+	do
+	{
+		res += (char)('0' + score % 10);
+		score /= 10;
+	} while (score > 0);
+	reverse(res.begin(), res.end());
+	return res;
+}
+
 // load string texture
 bool LGame::loadString(LScore &curTexture, const std::string &path, const std::string &str)
 {
@@ -285,6 +313,79 @@ bool LGame::loadFishImage(LFish &curFish, const std::string &path)
 		success = false;
 	}
 	return success;
+}
+
+void LGame::setUpBackGround()
+{
+	loadBackGroundImage(curBackGround, "../pictures/useful/background/1.png");
+
+	loadBackGroundImage(gameLose, "../pictures/useful/background/gamelose.png");
+
+	loadBackGroundImage(highScore, "../pictures/useful/background/highscore.png");
+
+	loadBackGroundImage(newGame, "../pictures/useful/background/newgame.png");
+
+	loadBackGroundImage(choseBackGround, "../pictures/useful/background/slotgame.png");
+
+	loadBackGroundImage(waitScreen, "../pictures/useful/background/fisheatfish2.png");
+
+	loadBackGroundImage(gBackGround[0], "../pictures/useful/background/1.png");
+
+	loadBackGroundImage(gBackGround[1], "../pictures/useful/background/2.png");
+	
+	loadBackGroundImage(gBackGround[2], "../pictures/useful/background/3.png");
+
+	loadBackGroundImage(gBackGround[3], "../pictures/useful/background/4.png");
+
+	loadBackGroundImage(gBackGround[4], "../pictures/useful/background/5.png");
+
+	loadBackGroundImage(gBackGround[5], "../pictures/useful/background/6.png");
+
+	for(int i = 0; i < 6; ++i)
+		loadBackGroundImage(gSlotGame[i], "../pictures/useful/background/mapbackground.png");
+
+	newGame.setWidth(210);
+	newGame.setHeight(140);
+
+	highScore.setWidth(150);
+	highScore.setHeight(100);
+
+	for(int i = 0; i < 6; ++i)
+		gBackGround[i].setWidth(170), gBackGround[i].setHeight(170); 
+
+	for(int i = 0; i < 6; ++i)
+		gSlotGame[i].setWidth(250), gSlotGame[i].setHeight(250);
+
+}
+
+bool LGame::choseMapBackGround(SDL_Event* e)
+{
+	int id = -1;
+	if(e->type == SDL_MOUSEBUTTONDOWN)
+	{
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+		for(int i = 0; i < 6; ++i)
+		{
+			if(backgroundPosition[i].first + 20 <= x && x <= backgroundPosition[i].first + 190)
+			{
+				if(backgroundPosition[i].second + 20 <= y && y <= backgroundPosition[i].second + 190)
+				{
+					id = i;
+					break;
+				}
+			}
+		}
+	}
+	if(id == -1)
+		return false;
+	++id;
+	string path = "../pictures/useful/background/";
+	path += toString(id);
+	path += ".png";
+	curBackGround.free();
+	loadBackGroundImage(curBackGround, path);
+	return true;
 }
 
 bool LGame::loadBackGroundImage(LBackGround &curBackGround, const std::string &path)
@@ -357,7 +458,7 @@ void LGame::addNewFish()
 			continue;
 		if(yourFish.getCurPoint() > gAnimal[i].getCurPoint())
 			for(int j = 1; j <= 10; ++j)
-				candidates.push_back(j);
+				candidates.push_back(i);
 	}
 
 	for (int i = 0; i < diff.size(); ++i)
@@ -403,42 +504,42 @@ void LGame::loadFish(LFish &curFish, int fishType)
 	{
 	case SHARK:
 	{
-		loadFishImage(curFish, "../pictures/simple/shark.png");
+		loadFishImage(curFish, "../pictures/useful/fish/shark.png");
 		curFish.setImagePart(4);
 		break;
 	}
 	case JELLYFISH:
 	{
-		loadFishImage(curFish, "../pictures/simple/jellyfish.png");
+		loadFishImage(curFish, "../pictures/useful/fish/jellyfish.png");
 		curFish.setImagePart(4);
 		break;
 	}
 	case TURTLE:
 	{
-		loadFishImage(curFish, "../pictures/simple/turtle.png");
+		loadFishImage(curFish, "../pictures/useful/fish/turtle.png");
 		curFish.setImagePart(6);
 		break;
 	}
 	case LANTERNSHARK:
 	{
-		loadFishImage(curFish, "../pictures/simple/lanternshark.png");
+		loadFishImage(curFish, "../pictures/useful/fish/lanternshark.png");
 		curFish.setImagePart(4);
 		break;
 	}
 	case EEL:
 	{
-		loadFishImage(curFish, "../pictures/simple/eel.png");
+		loadFishImage(curFish, "../pictures/useful/fish/eel.png");
 		curFish.setImagePart(6);
 		break;
 	}
 	case OCTOPUS:
 	{
-		loadFishImage(curFish, "../pictures/simple/octopus.png");
+		loadFishImage(curFish, "../pictures/useful/fish/octopus.png");
 		curFish.setImagePart(6);
 		break;
 	}
 	default:
-		loadFishImage(curFish, "../pictures/simple/shark.png");
+		loadFishImage(curFish, "../pictures/useful/fish/shark.png");
 		curFish.setImagePart(4);
 		break;
 	}
@@ -487,26 +588,6 @@ void LGame::updateFishPosition()
 
 		// //If this fish is near a bomb, it swim faster
 		int speed = fishOnScreen[i].curSpeed;
-		// for(int j = 0; j < 10; ++j)
-		// {
-		// 	if(!bombOnScreen[j].isOnScreen)
-		// 	continue;
-		// 	SDL_Point attackCenter;
-		// 	attackCenter.x = bombOnScreen[j].curPosition.x + 24;
-		// 	attackCenter.y = bombOnScreen[j].curPosition.y + 24;
-
-		// 	SDL_Point targetCenter;
-		// 	targetCenter.x = fishOnScreen[i].curPosition.x + fishOnScreen[i].getCurSize() / 2;
-		// 	targetCenter.y = fishOnScreen[i].curPosition.y + fishOnScreen[i].getCurSize() / 2;
-
-		// 	double dis = sqrt(1.0 * (attackCenter.x - targetCenter.x) * (attackCenter.x - targetCenter.x) + 1.0 * (attackCenter.y - targetCenter.y) * (attackCenter.y - targetCenter.y));
-
-		// 	if (dis <= 40)
-		// 	{
-		// 		speed = 5;
-		// 		fishOnScreen[i].curPosition.y += 5;
-		// 	}
-		// }
 		if (fishOnScreen[i].right)
 			fishOnScreen[i].curPosition.x += speed;
 		else
@@ -550,6 +631,7 @@ void LGame::eatOtherFish()
 				lastTime = curTime;
 				++curCombo;
 			}
+			Mix_PlayChannel(-1, eatingSound, 0);
 		}
 		else
 			isLose = true;
@@ -568,25 +650,32 @@ void LGame::fishAI()
 			if (yourFish.getCurPoint() < fishOnScreen[i].getCurPoint() && fishOnScreen[i].right && fishOnScreen[i].curPosition.x > yourFish.curPosition.x)
 				continue;
 
-			if (fishOnScreen[i].haveAI == false)
-				continue;
-
-			if (!randNum(0, 1))
+			if (fishOnScreen[i].haveAI == false && fishOnScreen[i].fishType != OCTOPUS)
 				continue;
 
 			if (yourFish.getCurPoint() >= fishOnScreen[i].getCurPoint())
 			{
-				if (yourFish.curPosition.y >= fishOnScreen[i].curPosition.y)
-					fishOnScreen[i].curPosition.y--;
-				else
-					fishOnScreen[i].curPosition.y++;
+				if(fishOnScreen[i].fishType != OCTOPUS)
+				{
+					if (yourFish.curPosition.y >= fishOnScreen[i].curPosition.y)
+						fishOnScreen[i].curPosition.y -= sp[yourFish.fishType];
+					else
+						fishOnScreen[i].curPosition.y += sp[yourFish.fishType];
+				} 	
+				else 
+				{
+					if (yourFish.curPosition.y >= fishOnScreen[i].curPosition.y)
+						fishOnScreen[i].curPosition.y = max(yourFish.curPosition.y, fishOnScreen[i].curPosition.y - 5);
+					else
+						fishOnScreen[i].curPosition.y = min(yourFish.curPosition.y, fishOnScreen[i].curPosition.y + 5);
+				}
 			}
 			else
 			{
 				if (yourFish.curPosition.y <= fishOnScreen[i].curPosition.y)
-					fishOnScreen[i].curPosition.y--;
+					fishOnScreen[i].curPosition.y -= sp[yourFish.fishType];
 				else
-					fishOnScreen[i].curPosition.y++;
+					fishOnScreen[i].curPosition.y += sp[yourFish.fishType];
 			}
 		}
 	}
@@ -612,19 +701,6 @@ int LGame::attackResult(LFish &attackFish, LFish &targetFish)
 			return 2;
 	}
 	return 0;
-}
-
-string LGame::toString(int score)
-{
-	assert(0 <= score && score <= (int)1e9);
-	string res = "";
-	do
-	{
-		res += (char)('0' + score % 10);
-		score /= 10;
-	} while (score > 0);
-	reverse(res.begin(), res.end());
-	return res;
 }
 
 void LGame::renderScore()
@@ -682,13 +758,13 @@ void LGame::setUpBomb()
 {
 	for (int i = 0; i < 10; ++i)
 	{
-		loadBombImage(bombOnScreen[i], "../pictures/simple/bomb.png");
+		loadBombImage(bombOnScreen[i], "../pictures/useful/bomb/bomb.png");
 		bombOnScreen[i].setWidth(48);
 		bombOnScreen[i].setHeight(48);
 	}
 	for (int i = 0; i < 10; ++i)
 	{
-		loadBombImage(explosion[i], "../pictures/simple/explosion1.png");
+		loadBombImage(explosion[i], "../pictures/useful/bomb/explosion1.png");
 		explosion[i].setWidth(48);
 		explosion[i].setHeight(48);
 	}
@@ -794,6 +870,40 @@ void LGame::bombKillFish()
 	}
 }
 
+bool LGame::checkWatchingHighScore(SDL_Event *e)
+{
+	if(e->type != SDL_MOUSEBUTTONDOWN)
+		return false;
+	if(!isStart || isLose)
+	{
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+		return (502 <= x && x <= 621 && 646 <= y && y <= 684);
+	}
+	return false;
+}
+
+void LGame::renderHighScore()
+{
+	sort(highScoreVector.begin(), highScoreVector.end(), greater<int>());
+	for(int i = 0; i < min(10, (int)highScoreVector.size()); ++i)
+	{
+		highScoreTexture[i].free();
+		string s = "#" + toString(i + 1);
+		s += ":";
+		string t = toString(highScoreVector[i]);
+		while((int)s.length() + (int)t.length() < 70) s += ' ';
+		s += t;
+		loadString(highScoreTexture[i], "../fonts/high_scores.ttf", s);
+		// highScoreTexture[i].setWidth(200);
+		// highScoreTexture[i].setHeight(50);
+	}
+	for(int i = 0; i < min(10, (int)highScoreVector.size()); ++i)
+	{
+		highScoreTexture[i].render(gRenderer, 420, 50 + 50 * i);
+	}
+}
+
 void LGame::reset()
 {
 	yourFish.setSize(sz[LANTERNSHARK]);
@@ -805,7 +915,9 @@ void LGame::reset()
 	isLose = false;
 	myMusic.stopMusic();
 	lastTime = curTime = curCombo = 0;
+	watchingHighScore = false;
 	haveBackGround = false;
+	curBackGround.free();
 }
 
 LGame::LGame()
@@ -817,6 +929,7 @@ LGame::LGame()
 	isStart = false;
 	haveBackGround = false;
 	explosionSound = NULL;
+	watchingHighScore = false;
 	lastTime = curTime = curCombo = 0;
 }
 
@@ -844,8 +957,12 @@ void LGame::free()
 	gameLose.free();
 	newGame.free();
 	waitScreen.free();
-	for(int i = 0; i < 4; ++i)
+	choseBackGround.free();
+	textChoseBackGround.free();
+	for(int i = 0; i < 6; ++i)
 		gBackGround[i].free();
+	for(int i = 0; i < 6; ++i)
+		gSlotGame[i].free();
 	for (int i = 0; i < TOTAL_ANIMAL; ++i)
 		textScore[i].free();
 	textCombo.free();
@@ -853,10 +970,13 @@ void LGame::free()
 		bombOnScreen[i].free();
 	for (int i = 0; i < 10; ++i)
 		explosion[i].free();
+	highScore.free();
 	isLose = false;
 	isStart = false;
 	myMusic.free();
 	Mix_FreeChunk(explosionSound);
+	Mix_FreeChunk(mouseClick);
+	Mix_FreeChunk(eatingSound);
 	explosionSound = NULL;
 	// Quit SDL subsystems
 	IMG_Quit();

@@ -40,6 +40,8 @@ const int limitSize[] = {48, 72, 96, 120, 144, 168};
 
 const int cntFish[] = {30, 20, 15, 10, 5};
 
+const pair<int, int> backgroundPosition[] = {{161, 150}, {439, 150}, {724, 150}, {161, 420}, {436, 420}, {723, 420}};
+
 class LGame
 {
     public:
@@ -59,6 +61,11 @@ class LGame
 
         // Load background
         bool loadBackGroundImage(LBackGround &curBackGround, const std::string &path);
+
+        void setUpBackGround();
+
+        // find which map is chosed
+        bool choseMapBackGround(SDL_Event* e);
 
         // Load bomb
         bool loadBombImage(LBomb &curBomb, const std::string &path);
@@ -124,6 +131,12 @@ class LGame
         //Render a new explosion on screen
         void addNewExplosion(int x, int y);
 
+        //Check if you are watching best score
+        bool checkWatchingHighScore(SDL_Event *e);
+
+        //Render high score on screen
+        void renderHighScore();
+
         void reset();
 
         void free();
@@ -131,17 +144,20 @@ class LGame
         LFish gAnimal[TOTAL_ANIMAL];
         LFish yourFish;
         LFish fishOnScreen[TOTAL_ANIMAL * 50];
-        LBackGround gameLose, newGame, waitScreen;
+        LBackGround gameLose, newGame, waitScreen, highScore;
         LBackGround curBackGround;
-        LBackGround gBackGround[4];
+        LBackGround choseBackGround;
+        LBackGround gBackGround[6], gSlotGame[6];
         LScore textScore[TOTAL_ANIMAL];
-        LScore textCombo;
+        LScore textCombo, textChoseBackGround;
+        LScore highScoreTexture[10];
         LSound myMusic;
-        Mix_Chunk *explosionSound = NULL;
+        Mix_Chunk *explosionSound = NULL, *mouseClick = NULL, *eatingSound = NULL;
         LBomb bombOnScreen[10], explosion[10];
         int totalFish;
-        bool isLose, isStart, haveBackGround;
+        bool isLose, isStart, haveBackGround, watchingHighScore;
         int curTime, lastTime, curCombo;
+        vector<int> highScoreVector;
     private:
         SDL_Window *gWindow;
         SDL_Renderer *gRenderer;
