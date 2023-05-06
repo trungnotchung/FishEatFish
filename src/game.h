@@ -148,6 +148,7 @@ class LGame
         LBackGround curBackGround;
         LBackGround choseBackGround;
         LBackGround gBackGround[6], gSlotGame[6];
+        LBackGround volumeButton, muteButton, pauseButton;
         LScore textScore[TOTAL_ANIMAL];
         LScore textCombo, textChoseBackGround;
         LScore highScoreTexture[10];
@@ -155,7 +156,7 @@ class LGame
         Mix_Chunk *explosionSound = NULL, *mouseClick = NULL, *eatingSound = NULL;
         LBomb bombOnScreen[10], explosion[10];
         int totalFish;
-        bool isLose, isStart, haveBackGround, watchingHighScore;
+        bool isLose, isStart, haveBackGround, watchingHighScore, playingSound, isPause;
         int curTime, lastTime, curCombo;
         vector<int> highScoreVector;
     private:

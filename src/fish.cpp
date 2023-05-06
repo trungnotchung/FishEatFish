@@ -14,6 +14,7 @@ LFish::LFish()
 	mHeight = 0;
 	trueFish = true;
 	mTexture = NULL;
+	follow = false;
 }
 
 LFish::~LFish()
@@ -125,6 +126,7 @@ void LFish::reset()
 	curPosition.y = randNum(0, SCREEN_HEIGHT);
 	curPart = 0;
 	haveAI = randNum(0, 1);
+	follow = false;
 }
 
 void LFish::setColor(Uint8 red, Uint8 green, Uint8 blue)

@@ -41,6 +41,7 @@ void LGame::playGame()
 {
 	bool quit = false;
 
+
 	// Event handler
 	SDL_Event e;
 
@@ -60,7 +61,36 @@ void LGame::playGame()
 
 			if(e.type == SDL_MOUSEBUTTONDOWN)
 			{
-				Mix_PlayChannel(-1, mouseClick, 0);
+				if(playingSound)
+					Mix_PlayChannel(-1, mouseClick, 0);
+			}
+
+			if(e.type == SDL_KEYDOWN)
+			{
+				if(e.key.keysym.sym == SDLK_v)
+				{
+					if(playingSound)
+						playingSound = false;
+					else 
+						playingSound = true;
+					if(playingSound == false)
+						myMusic.stopMusic();
+				}
+				if(e.key.keysym.sym == SDLK_SPACE && isStart && haveBackGround)
+				{
+					if(isPause)
+					{
+						isPause = false;
+						if(playingSound)
+							myMusic.resumeMusic();
+					}
+					else 
+					{
+						isPause = true;
+						if(playingSound)
+							myMusic.pauseMusic();
+					}
+				}
 			}
 
 			// if (e.type == SDL_MOUSEBUTTONDOWN)
@@ -75,12 +105,15 @@ void LGame::playGame()
 			// Update your fish's position
 			if (p.x != -1 || p.y != -1)
 			{
-				if (p.x - yourFish.getCurSize() / 2 < yourFish.curPosition.x)
-					yourFish.left = true, yourFish.right = false;
-				else if (p.x - yourFish.getCurSize() / 2 > yourFish.curPosition.x)
-					yourFish.right = true, yourFish.left = false;
-				yourFish.curPosition.x = p.x - yourFish.getCurSize() / 2;
-				yourFish.curPosition.y = p.y - yourFish.getCurSize() / 2;
+				if(!isPause)
+				{
+					if (p.x - yourFish.getCurSize() / 2 < yourFish.curPosition.x)
+						yourFish.left = true, yourFish.right = false;
+					else if (p.x - yourFish.getCurSize() / 2 > yourFish.curPosition.x)
+						yourFish.right = true, yourFish.left = false;
+					yourFish.curPosition.x = p.x - yourFish.getCurSize() / 2;
+					yourFish.curPosition.y = p.y - yourFish.getCurSize() / 2;
+				}
 			}
 
 			if(!watchingHighScore)
@@ -115,6 +148,10 @@ void LGame::playGame()
 		if(watchingHighScore)
 		{
 			choseBackGround.render(gRenderer, 0, 0);
+			if(playingSound)
+				volumeButton.render(gRenderer, SCREEN_WIDTH - 120, 5);
+			else 
+				muteButton.render(gRenderer, SCREEN_WIDTH - 105, 25);
 			renderHighScore();
 			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			SDL_RenderPresent(gRenderer);
@@ -122,6 +159,10 @@ void LGame::playGame()
 		else if (!isStart)
 		{
 			waitScreen.render(gRenderer, 0, 0);
+			if(playingSound)
+				volumeButton.render(gRenderer, SCREEN_WIDTH - 120, 5);
+			else 
+				muteButton.render(gRenderer, SCREEN_WIDTH - 105, 25);
 			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			highScore.render(gRenderer, (SCREEN_WIDTH - highScore.getWidth()) / 2, 600);
 			SDL_RenderPresent(gRenderer);
@@ -129,6 +170,10 @@ void LGame::playGame()
 		else if(!haveBackGround)
 		{
 			choseBackGround.render(gRenderer, 0, 0);
+			if(playingSound)
+				volumeButton.render(gRenderer, SCREEN_WIDTH - 120, 5);
+			else 
+				muteButton.render(gRenderer, SCREEN_WIDTH - 105, 25);
 			for(int i = 0; i < 6; ++i)
 				gBackGround[i].render(gRenderer, backgroundPosition[i].first + 20, backgroundPosition[i].second + 20);
 			for(int i = 0; i < 6; ++i)
@@ -138,50 +183,59 @@ void LGame::playGame()
 		}
 		else if (!isLose)
 		{
-			++curTime;
-
 			// No explosion
 			for (int i = 0; i < 10; ++i)
 				explosion[i].isOnScreen = false;
 
-			myMusic.playMusic();
-
-			fishAI();
-
-			// Add a new fish
-			++timer;
-			if (timer == RANDOM_TIME)
+			if(playingSound && !isPause) 
+				myMusic.playMusic();
+			if(!isPause)
 			{
-				addNewFish();
-				timer = 0;
+				fishAI();
+				++curTime;
+				// Add a new fish
+				++timer;
+				if (timer == RANDOM_TIME)
+				{
+					addNewFish();
+					timer = 0;
+				}
+
+				// Add a new bomb
+				++timeBomb;
+				if (timeBomb == TIME_BOMB)
+				{
+					addNewBomb();
+					timeBomb = 0;
+				}
+
+				if(curTime - lastTime > COMBO_TIME)
+					curCombo = 0;
+				updateFishPosition();
+				eatOtherFish();
+
+				// Increase your fish's size
+				for (int i = 0; i < TOTAL_ANIMAL; ++i)
+				{
+					if (yourFish.getCurPoint() >= limitPoint[i])
+						yourFish.setSize(limitSize[i]);
+				}
 			}
 
-			// Add a new bomb
-			++timeBomb;
-			if (timeBomb == TIME_BOMB)
-			{
-				addNewBomb();
-				timeBomb = 0;
-			}
-
-			if(curTime - lastTime > COMBO_TIME)
-				curCombo = 0;
-			updateFishPosition();
-			eatOtherFish();
-
-			// Increase your fish's size
-			for (int i = 0; i < TOTAL_ANIMAL; ++i)
-			{
-				if (yourFish.getCurPoint() >= limitPoint[i])
-					yourFish.setSize(limitSize[i]);
-			}
 			curBackGround.render(gRenderer, 0, 0);
+			if(playingSound)
+				volumeButton.render(gRenderer, SCREEN_WIDTH - 120, 5);
+			else 
+				muteButton.render(gRenderer, SCREEN_WIDTH - 105, 25);
 			render(yourFish);
 			renderScore();
 			renderCombo();
 			renderBomb();
-			checkBombExplosion();
-			bombKillFish();
+			if(!isPause)
+			{
+				checkBombExplosion();
+				bombKillFish();
+			}
 
 			for (int i = 0; i < totalFish; ++i)
 			{
@@ -190,6 +244,9 @@ void LGame::playGame()
 				render(fishOnScreen[i]);
 				// std::cout << fishOnScreen[i].curPosition.x << " " << fishOnScreen[i].curPosition.y << '\n';
 			}
+
+			if(isPause)
+				pauseButton.render(gRenderer, (SCREEN_WIDTH - pauseButton.getWidth()) / 2, (SCREEN_HEIGHT - pauseButton.getHeight()) / 2);
 			SDL_RenderPresent(gRenderer);
 			if (isLose)
 			{
@@ -201,6 +258,10 @@ void LGame::playGame()
 		else
 		{
 			gameLose.render(gRenderer, 0, 0);
+			if(playingSound)
+				volumeButton.render(gRenderer, SCREEN_WIDTH - 120, 5);
+			else 
+				muteButton.render(gRenderer, SCREEN_WIDTH - 105, 25);
 			newGame.render(gRenderer, (SCREEN_WIDTH - newGame.getWidth()) / 2, 500);
 			highScore.render(gRenderer, (SCREEN_WIDTH - highScore.getWidth()) / 2, 600);
 			SDL_RenderPresent(gRenderer);
@@ -329,6 +390,12 @@ void LGame::setUpBackGround()
 
 	loadBackGroundImage(waitScreen, "../pictures/useful/background/fisheatfish2.png");
 
+	loadBackGroundImage(volumeButton, "../pictures/useful/background/volume.png");
+
+	loadBackGroundImage(muteButton, "../pictures/useful/background/mute.png");
+
+	loadBackGroundImage(pauseButton, "../pictures/useful/background/pause.png");
+
 	loadBackGroundImage(gBackGround[0], "../pictures/useful/background/1.png");
 
 	loadBackGroundImage(gBackGround[1], "../pictures/useful/background/2.png");
@@ -349,6 +416,15 @@ void LGame::setUpBackGround()
 
 	highScore.setWidth(150);
 	highScore.setHeight(100);
+
+	volumeButton.setWidth(80);
+	volumeButton.setHeight(80);
+	
+	muteButton.setWidth(50);
+	muteButton.setHeight(50);
+
+	pauseButton.setWidth(200);
+	pauseButton.setHeight(200);
 
 	for(int i = 0; i < 6; ++i)
 		gBackGround[i].setWidth(170), gBackGround[i].setHeight(170); 
@@ -481,6 +557,8 @@ void LGame::addNewFish()
 		{
 			fishOnScreen[j].reset();
 			fishOnScreen[j].isOnScreen = true;
+			if(randNum(1, 3) == 1)
+				fishOnScreen[j].follow = true;
 			return;
 		}
 	}
@@ -631,7 +709,8 @@ void LGame::eatOtherFish()
 				lastTime = curTime;
 				++curCombo;
 			}
-			Mix_PlayChannel(-1, eatingSound, 0);
+			if(playingSound)
+				Mix_PlayChannel(-1, eatingSound, 0);
 		}
 		else
 			isLose = true;
@@ -644,13 +723,22 @@ void LGame::fishAI()
 	{
 		if (fishOnScreen[i].isOnScreen)
 		{
+			if (fishOnScreen[i].haveAI == false && fishOnScreen[i].fishType != OCTOPUS)
+				continue;
+			if(fishOnScreen[i].follow && fishOnScreen[i].getCurPoint() > yourFish.getCurPoint())
+			{
+				if(fishOnScreen[i].curPosition.x + 12 < yourFish.curPosition.x)
+					fishOnScreen[i].left = false, fishOnScreen[i].right = true;
+				if(fishOnScreen[i].curPosition.x - 12 > yourFish.curPosition.x)
+					fishOnScreen[i].left = true, fishOnScreen[i].right = false;
+			}
+			if(fishOnScreen[i].follow)
+				if(randNum(1, 300) == 100)
+					fishOnScreen[i].follow = false;
 			if (yourFish.getCurPoint() < fishOnScreen[i].getCurPoint() && fishOnScreen[i].left && fishOnScreen[i].curPosition.x < yourFish.curPosition.x)
 				continue;
 
 			if (yourFish.getCurPoint() < fishOnScreen[i].getCurPoint() && fishOnScreen[i].right && fishOnScreen[i].curPosition.x > yourFish.curPosition.x)
-				continue;
-
-			if (fishOnScreen[i].haveAI == false && fishOnScreen[i].fishType != OCTOPUS)
 				continue;
 
 			if (yourFish.getCurPoint() >= fishOnScreen[i].getCurPoint())
@@ -788,7 +876,7 @@ void LGame::renderBomb()
 {
 	for (int i = 0; i < 10; ++i)
 	{
-		if (bombOnScreen[i].isOnScreen)
+		if (bombOnScreen[i].isOnScreen && !isPause)
 		{
 			bombOnScreen[i].curPosition.y += BOMB_SPEED;
 			if (bombOnScreen[i].curPosition.y > SCREEN_HEIGHT)
@@ -836,7 +924,8 @@ void LGame::addNewExplosion(int x, int y)
 		explosion[i].curPosition.y = y;
 		explosion[i].render(gRenderer, explosion[i].curPosition.x, explosion[i].curPosition.y);
 	}
-	Mix_PlayChannel(-1, explosionSound, 0);
+	if(playingSound)
+		Mix_PlayChannel(-1, explosionSound, 0);
 }
 
 void LGame::bombKillFish()
@@ -918,6 +1007,7 @@ void LGame::reset()
 	watchingHighScore = false;
 	haveBackGround = false;
 	curBackGround.free();
+	isPause = false;
 }
 
 LGame::LGame()
@@ -930,6 +1020,8 @@ LGame::LGame()
 	haveBackGround = false;
 	explosionSound = NULL;
 	watchingHighScore = false;
+	playingSound = true;
+	isPause = false;
 	lastTime = curTime = curCombo = 0;
 }
 
@@ -959,6 +1051,9 @@ void LGame::free()
 	waitScreen.free();
 	choseBackGround.free();
 	textChoseBackGround.free();
+	volumeButton.free();
+	muteButton.free();
+	pauseButton.free();
 	for(int i = 0; i < 6; ++i)
 		gBackGround[i].free();
 	for(int i = 0; i < 6; ++i)

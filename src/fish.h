@@ -88,6 +88,7 @@ class LFish
         void free();
 
         void setNotFish();
+        bool follow;
     private:
         int mWidth, mHeight;
         //The actual hardware texture
